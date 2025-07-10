@@ -19,7 +19,8 @@
     <!-- Manifest -->
     <link rel="manifest" href="/manifest.json">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gapi/0.0.3/gapi.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * {
             margin: 0;
@@ -382,9 +383,8 @@
         const API_KEY = 'AIzaSyDHzv9g3ZdMpwUMO9v-f9xMzkpYqJZ3_Ik';
         const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
         const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbybv-3d28nl6chkmcON7MLCTobOG7wNVeH4cYQvlNnZVsTI1JhZqhj9eDaNb-OGBftbwQ/exec'; // ضع هنا رابط Web App من Google Apps Script
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbybv-3d28nl6chkmcON7MLCTobOG7wNVeH4cYQvlNnZVsTI1JhZqhj9eDaNb-OGBftbwQ/exec';
 
-        let gapi;
         let isAuthorized = false;
         let selectedCompany = null;
         let selectedSourceNumber = null;
@@ -394,19 +394,28 @@
 
         // تحميل Google API
         function loadGoogleAPI() {
-            gapi = window.gapi;
-            gapi.load('auth2', initializeGapi);
-        }
-
-        async function initializeGapi() {
-            await gapi.auth2.init({
-                client_id: CLIENT_ID,
-            });
-            
-            const authInstance = gapi.auth2.getAuthInstance();
-            if (authInstance.isSignedIn.get()) {
-                handleAuthResult(authInstance.currentUser.get());
+            // التأكد من تحميل gapi
+            if (typeof gapi === 'undefined') {
+                console.error('Google API لم يتم تحميله');
+                showMessage('خطأ في تحميل Google API');
+                return;
             }
+            
+            gapi.load('auth2', async () => {
+                try {
+                    await gapi.auth2.init({
+                        client_id: CLIENT_ID,
+                    });
+                    
+                    const authInstance = gapi.auth2.getAuthInstance();
+                    if (authInstance.isSignedIn.get()) {
+                        handleAuthResult(authInstance.currentUser.get());
+                    }
+                } catch (error) {
+                    console.error('خطأ في تهيئة Google Auth:', error);
+                    showMessage('خطأ في تهيئة Google Auth');
+                }
+            });
         }
 
         // تسجيل الدخول
@@ -715,7 +724,23 @@
         });
 
         // تحميل Google API عند تحميل الصفحة
-        window.addEventListener('load', loadGoogleAPI);
+        window.addEventListener('load', function() {
+            // انتظار تحميل gapi
+            const checkGapi = setInterval(() => {
+                if (typeof gapi !== 'undefined') {
+                    clearInterval(checkGapi);
+                    loadGoogleAPI();
+                }
+            }, 100);
+            
+            // timeout بعد 10 ثوان
+            setTimeout(() => {
+                clearInterval(checkGapi);
+                if (typeof gapi === 'undefined') {
+                    showMessage('فشل في تحميل Google API');
+                }
+            }, 10000);
+        });
 
         // تسجيل Service Worker
         if ('serviceWorker' in navigator) {
