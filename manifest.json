@@ -1,0 +1,87 @@
+{
+  "name": "نظام إدخال الفواتير",
+  "short_name": "الفواتير",
+  "description": "تطبيق إدخال الفواتير العائم للموبايل",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzIiIGhlaWdodD0iNzIiIHZpZXdCb3g9IjAgMCA3MiA3MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjcyIiBoZWlnaHQ9IjcyIiByeD0iMTYiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+      "sizes": "72x72",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMjAiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+      "sizes": "96x96",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiByeD0iMjQiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIzMiIgeT0iMzIiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+      "sizes": "128x128",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDE0NCAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiByeD0iMjgiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIzNiIgeT0iMzYiIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+      "sizes": "144x144",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUyIiBoZWlnaHQ9IjE1MiIgdmlld0JveD0iMCAwIDE1MiAxNTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTIiIGhlaWdodD0iMTUyIiByeD0iMzIiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0NCIgeT0iNDQiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+      "sizes": "152x152",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzg0IiBoZWlnaHQ9IjM4NCIgdmlld0JveD0iMCAwIDM4NCAzODQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzODQiIGhlaWdodD0iMzg0IiByeD0iODAiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI5NiIgeT0iOTYiIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KPHBhdGggZD0iTTkgMTFINWEyIDIgMCAwIDAtMiAydjhhMiAyIDAgMCAwIDIgMmgxNGEyIDIgMCAwIDAgMi0yVjlhMiAyIDAgMCAwLTItMmgtNW0tNCAwVjdhMiAyIDAgMCAwLTItMkg1YTIgMiAwIDAgMC0yIDJ2MiIvPgo8bGluZSB4MT0iOSIgeTE9IjE1IiB4Mj0iMTUiIHkyPSIxNSIvPgo8bGluZSB4MT0iOSIgeTE9IjE5IiB4Mj0iMTUiIHkyPSIxOSIvPgo8L3N2Zz4KPC9zdmc+Cg==",
+      "sizes": "384x384",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTAwIiBmaWxsPSIjNjY3ZWVhIi8+CjxzdmcgeD0iMTI4IiB5PSIxMjgiIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KPHBhdGggZD0iTTkgMTFINWEyIDIgMCAwIDAtMiAydjhhMiAyIDAgMCAwIDIgMmgxNGEyIDIgMCAwIDAgMi0yVjlhMiAyIDAgMCAwLTItMmgtNW0tNCAwVjdhMiAyIDAgMCAwLTItMkg1YTIgMiAwIDAgMC0yIDJ2MiIvPgo8bGluZSB4MT0iOSIgeTE9IjE1IiB4Mj0iMTUiIHkyPSIxNSIvPgo8bGluZSB4MT0iOSIgeTE9IjE5IiB4Mj0iMTUiIHkyPSIxOSIvPgo8L3N2Zz4KPC9zdmc+Cg==",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTAwIiBmaWxsPSIjNjY3ZWVhIi8+CjxzdmcgeD0iMTI4IiB5PSIxMjgiIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KPHBhdGggZD0iTTkgMTFINWEyIDIgMCAwIDAtMiAydjhhMiAyIDAgMCAwIDIgMmgxNGEyIDIgMCAwIDAgMi0yVjlhMiAyIDAgMCAwLTItMmgtNW0tNCAwVjdhMiAyIDAgMCAwLTItMkg1YTIgMiAwIDAgMC0yIDJ2MiIvPgo8bGluZSB4MT0iOSIgeTE9IjE1IiB4Mj0iMTUiIHkyPSIxNSIvPgo8bGluZSB4MT0iOSIgeTE9IjE5IiB4Mj0iMTUiIHkyPSIxOSIvPgo8L3N2Zz4KPC9zdmc+Cg==",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "إدخال فاتورة جديدة",
+      "short_name": "فاتورة جديدة",
+      "description": "فتح نموذج إدخال فاتورة جديدة",
+      "url": "/",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}

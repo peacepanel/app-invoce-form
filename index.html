@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق إدخال الفواتير العائم</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="الفواتير">
+    <meta name="msapplication-TileColor" content="#667eea">
+    
+    <!-- Icons (using embedded SVG) -->
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzY2N2VlYSIvPgo8c3ZnIHg9IjgiIHk9IjgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUyIiBoZWlnaHQ9IjE1MiIgdmlld0JveD0iMCAwIDE1MiAxNTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTIiIGhlaWdodD0iMTUyIiByeD0iMzIiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0NCIgeT0iNDQiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gapi/0.0.3/gapi.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: transparent;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .floating-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 150px; /* حوالي 4 سم */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 10000;
+            touch-action: pan-y;
+            transition: transform 0.3s ease;
+        }
+
+        .drag-handle {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 4px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 2px;
+            cursor: grab;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .auth-section {
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .auth-section h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .login-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .login-btn:hover {
+            background: #3367d6;
+        }
+
+        .form-container {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+            padding: 15px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .button-group button {
+            flex: 1;
+            min-width: 30px;
+            padding: 8px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .button-group button:hover {
+            background: #45a049;
+        }
+
+        .button-group button.selected {
+            background: #ffa500;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .save-btn:hover {
+            background: #1976D2;
+        }
+
+        .collapse-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .collapsed {
+            transform: translateY(-120px);
+        }
+
+        .user-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .status-message {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .floating-container {
+                height: 160px;
+            }
+            
+            .form-group input,
+            .form-group select {
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            .button-group button {
+                font-size: 12px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-container" id="floatingContainer">
+        <button class="collapse-btn" id="collapseBtn">−</button>
+        <div class="drag-handle" id="dragHandle"></div>
+        <div class="user-info" id="userInfo"></div>
+        
+        <div class="auth-section" id="authSection">
+            <h3>تسجيل الدخول</h3>
+            <button class="login-btn" id="loginBtn">تسجيل الدخول بـ Google</button>
+        </div>
+
+        <div class="form-container" id="formContainer">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="issuingAuthority">جهة الاصدار</label>
+                    <select id="issuingAuthority">
+                        <option value="">اختر</option>
+                        <option value="AM">AM</option>
+                        <option value="A">A</option>
+                        <option value="BM">BM</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="selectedDate">تاريخ الطلب</label>
+                    <input type="date" id="selectedDate">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>رقم الوجبة</label>
+                <div class="button-group" id="sourceNumber-buttons">
+                    <button onclick="selectSourceNumber(this, 1)">1</button>
+                    <button onclick="selectSourceNumber(this, 2)">2</button>
+                    <button onclick="selectSourceNumber(this, 3)">3</button>
+                    <button onclick="selectSourceNumber(this, 4)">4</button>
+                    <button onclick="selectSourceNumber(this, 5)">5</button>
+                    <button onclick="selectSourceNumber(this, 6)">6</button>
+                    <button onclick="selectSourceNumber(this, 7)">7</button>
+                    <button onclick="selectSourceNumber(this, 8)">8</button>
+                    <button onclick="selectSourceNumber(this, 9)">9</button>
+                    <button onclick="selectSourceNumber(this, 10)">10</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>فئة البيج</label>
+                <div class="button-group" id="category-buttons"></div>
+            </div>
+
+            <div class="form-group">
+                <label>الصفحة</label>
+                <div class="button-group" id="page-buttons"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="page">اسم الصفحة</label>
+                    <input type="text" id="page" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumberPage">رقم البيج</label>
+                    <input type="text" id="phoneNumberPage" disabled>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="goodsType">نوع البضاعة</label>
+                <input type="text" id="goodsType">
+                <div class="button-group" id="goodsType-buttons"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="customerName">اسم الزبون</label>
+                <input type="text" id="customerName">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="governorate">المحافظة</label>
+                    <input list="governorates" id="governorate" oninput="updateDeliveryAmount()">
+                    <datalist id="governorates"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="address">العنوان</label>
+                    <input type="text" id="address">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phoneNumber1">موبايل 1</label>
+                    <input type="number" id="phoneNumber1">
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber2">موبايل 2</label>
+                    <input type="number" id="phoneNumber2">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity">عدد القطع</label>
+                    <input type="number" id="quantity">
+                </div>
+                <div class="form-group">
+                    <label for="orderAmount">مبلغ الطلب</label>
+                    <input type="number" id="orderAmount" onblur="validateOrderAmount()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="deliveryAmount">التوصيل</label>
+                    <input type="number" id="deliveryAmount">
+                </div>
+                <div class="form-group">
+                    <label for="totalAmount">المجموع</label>
+                    <input type="number" id="totalAmount">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="notes">ملاحظات</label>
+                    <input type="text" id="notes">
+                </div>
+                <div class="form-group">
+                    <label for="differenceAmount">مبلغ الفرق</label>
+                    <input type="number" id="differenceAmount">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>التوصيل بواسطة</label>
+                <div class="button-group" id="company-buttons">
+                    <button onclick="selectCompany(this, 'شركة القلعة')">القلعة</button>
+                    <button onclick="selectCompany(this, 'علي أبو إيان')">أبو إيان</button>
+                    <button onclick="selectCompany(this, 'مصطفى أبو نمر')">أبو نمر</button>
+                </div>
+            </div>
+
+            <button class="save-btn" id="saveBtn">احفظ الفاتورة</button>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <script>
+        // إعدادات Google API
+        const CLIENT_ID = '628480859083-tkf99v2bnjnlblq8h8v7kl9ud8f14oi1.apps.googleusercontent.com';
+        const API_KEY = 'AIzaSyDHzv9g3ZdMpwUMO9v-f9xMzkpYqJZ3_Ik';
+        const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbybv-3d28nl6chkmcON7MLCTobOG7wNVeH4cYQvlNnZVsTI1JhZqhj9eDaNb-OGBftbwQ/exec'; // ضع هنا رابط Web App من Google Apps Script
+
+        let gapi;
+        let isAuthorized = false;
+        let selectedCompany = null;
+        let selectedSourceNumber = null;
+        let isDragging = false;
+        let startY = 0;
+        let currentY = 0;
+
+        // تحميل Google API
+        function loadGoogleAPI() {
+            gapi = window.gapi;
+            gapi.load('auth2', initializeGapi);
+        }
+
+        async function initializeGapi() {
+            await gapi.auth2.init({
+                client_id: CLIENT_ID,
+            });
+            
+            const authInstance = gapi.auth2.getAuthInstance();
+            if (authInstance.isSignedIn.get()) {
+                handleAuthResult(authInstance.currentUser.get());
+            }
+        }
+
+        // تسجيل الدخول
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            try {
+                const authInstance = gapi.auth2.getAuthInstance();
+                const user = await authInstance.signIn();
+                handleAuthResult(user);
+            } catch (error) {
+                showMessage('فشل تسجيل الدخول: ' + error.message);
+            }
+        });
+
+        function handleAuthResult(user) {
+            const profile = user.getBasicProfile();
+            const email = profile.getEmail();
+            
+            document.getElementById('userInfo').textContent = profile.getName();
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('formContainer').style.display = 'block';
+            
+            isAuthorized = true;
+            loadInitialData();
+        }
+
+        // تحميل البيانات الأولية
+        async function loadInitialData() {
+            try {
+                const categories = await callWebApp('getCategoryOptions');
+                populateCategories(categories);
+                
+                const governorates = await callWebApp('getGovernorates');
+                populateGovernorates(governorates);
+                
+                populateGoodsTypeButtons();
+                showMessage('تم تحميل البيانات بنجاح');
+            } catch (error) {
+                showMessage('خطأ في تحميل البيانات: ' + error.message);
+            }
+        }
+
+        // استدعاء Web App
+        async function callWebApp(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+            
+            if (data && Object.keys(data).length > 0) {
+                if (action === 'saveInvoice') {
+                    formData.append('data', JSON.stringify(data));
+                } else {
+                    Object.keys(data).forEach(key => {
+                        formData.append(key, data[key]);
+                    });
+                }
+            }
+
+            const response = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            return result.data;
+        }
+
+        // وظائف UI
+        function populateCategories(categories) {
+            const categoryButtons = document.getElementById('category-buttons');
+            categoryButtons.innerHTML = '';
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.textContent = category.category;
+                button.onclick = async () => {
+                    selectButton(button, 'category-buttons');
+                    const pages = await callWebApp('getPagesByCategory', { category: category.category });
+                    populatePages(pages);
+                };
+                categoryButtons.appendChild(button);
+            });
+        }
+
+        function populatePages(pages) {
+            const pageButtons = document.getElementById('page-buttons');
+            pageButtons.innerHTML = '';
+            pages.forEach(page => {
+                const button = document.createElement('button');
+                button.textContent = page;
+                button.onclick = async () => {
+                    selectButton(button, 'page-buttons');
+                    document.getElementById('page').value = page;
+                    
+                    const phoneNumber = await callWebApp('getPhoneNumberByPage', { page: page });
+                    document.getElementById('phoneNumberPage').value = phoneNumber;
+                };
+                pageButtons.appendChild(button);
+            });
+        }
+
+        function populateGovernorates(governorates) {
+            const governorateList = document.getElementById('governorates');
+            governorateList.innerHTML = '';
+            governorates.forEach(governorate => {
+                const option = document.createElement('option');
+                option.value = governorate;
+                governorateList.appendChild(option);
+            });
+        }
+
+        function populateGoodsTypeButtons() {
+            const goodsTypes = [
+                "شكلام", "مفروشات", "ربطات وشالات", "اكسسوارات", "ملابس",
+                "اكسسوارات رجالي", "ملابس رجالي", "أحذية وحقائب", "مستلزمات منزلية", "مستلزمات موبايل"
+            ];
+            
+            const goodsTypeButtons = document.getElementById('goodsType-buttons');
+            goodsTypeButtons.innerHTML = '';
+            goodsTypes.forEach(type => {
+                const button = document.createElement('button');
+                button.textContent = type;
+                button.onclick = () => {
+                    document.getElementById('goodsType').value = type;
+                };
+                goodsTypeButtons.appendChild(button);
+            });
+        }
+
+        function selectButton(button, groupId) {
+            const buttons = document.querySelectorAll(`#${groupId} button`);
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
+        }
+
+        function selectSourceNumber(button, number) {
+            selectButton(button, 'sourceNumber-buttons');
+            selectedSourceNumber = number;
+        }
+
+        function selectCompany(button, company) {
+            selectButton(button, 'company-buttons');
+            selectedCompany = company;
+        }
+
+        function updateDeliveryAmount() {
+            const governorate = document.getElementById('governorate').value;
+            const deliveryAmount = document.getElementById('deliveryAmount');
+            
+            if (governorate === 'بغداد') {
+                deliveryAmount.value = 5000;
+            } else {
+                deliveryAmount.value = 8000;
+            }
+            
+            calculateTotalAmount();
+        }
+
+        function validateOrderAmount() {
+            const orderAmountInput = document.getElementById('orderAmount');
+            let orderAmount = parseInt(orderAmountInput.value, 10);
+            
+            if (isNaN(orderAmount)) return;
+            
+            if (orderAmount >= 5 && orderAmount <= 999) {
+                orderAmount *= 1000;
+                orderAmountInput.value = orderAmount;
+            }
+            
+            calculateTotalAmount();
+        }
+
+        function calculateTotalAmount() {
+            const orderAmount = parseFloat(document.getElementById('orderAmount').value) || 0;
+            const deliveryAmount = parseFloat(document.getElementById('deliveryAmount').value) || 0;
+            document.getElementById('totalAmount').value = orderAmount + deliveryAmount;
+        }
+
+        // حفظ الفاتورة
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            if (!isAuthorized) {
+                showMessage('الرجاء تسجيل الدخول أولاً');
+                return;
+            }
+
+            const data = collectFormData();
+            if (!validateFormData(data)) return;
+
+            try {
+                showMessage('جاري حفظ الفاتورة...');
+                await callWebApp('saveInvoice', data);
+                showMessage('تم حفظ الفاتورة بنجاح!');
+                clearForm();
+            } catch (error) {
+                showMessage('خطأ في حفظ الفاتورة: ' + error.message);
+            }
+        });
+
+        function collectFormData() {
+            return {
+                issuingAuthority: document.getElementById('issuingAuthority').value,
+                selectedDate: document.getElementById('selectedDate').value,
+                selectedNumber: selectedSourceNumber,
+                selectedPage: document.getElementById('page').value,
+                phoneNumberPage: document.getElementById('phoneNumberPage').value,
+                goodsType: document.getElementById('goodsType').value,
+                customerName: document.getElementById('customerName').value,
+                governorate: document.getElementById('governorate').value,
+                address: document.getElementById('address').value,
+                phoneNumber1: document.getElementById('phoneNumber1').value,
+                phoneNumber2: document.getElementById('phoneNumber2').value,
+                quantity: document.getElementById('quantity').value,
+                orderAmount: document.getElementById('orderAmount').value,
+                deliveryAmount: document.getElementById('deliveryAmount').value,
+                totalAmount: document.getElementById('totalAmount').value,
+                notes: document.getElementById('notes').value,
+                differenceAmount: document.getElementById('differenceAmount').value,
+                company: selectedCompany
+            };
+        }
+
+        function validateFormData(data) {
+            const required = [
+                'issuingAuthority', 'selectedPage', 'customerName', 'governorate', 
+                'address', 'phoneNumber1', 'goodsType', 'quantity', 'orderAmount'
+            ];
+            
+            for (let field of required) {
+                if (!data[field]) {
+                    showMessage(`الرجاء ملء حقل ${field}`);
+                    return false;
+                }
+            }
+            
+            if (!selectedCompany) {
+                showMessage('الرجاء اختيار شركة التوصيل');
+                return false;
+            }
+            
+            return true;
+        }
+
+        function clearForm() {
+            document.querySelectorAll('input:not([type="date"])').forEach(input => {
+                if (!input.disabled) input.value = '';
+            });
+            document.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            document.querySelectorAll('button.selected').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            selectedCompany = null;
+            selectedSourceNumber = null;
+        }
+
+        function showMessage(message) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.style.display = 'block';
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // وظائف السحب
+        const container = document.getElementById('floatingContainer');
+        const dragHandle = document.getElementById('dragHandle');
+        const collapseBtn = document.getElementById('collapseBtn');
+
+        dragHandle.addEventListener('mousedown', startDrag);
+        dragHandle.addEventListener('touchstart', startDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            startY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
+            currentY = container.offsetTop;
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
+            const deltaY = clientY - startY;
+            const newY = Math.max(-120, Math.min(0, currentY + deltaY));
+            
+            container.style.transform = `translateY(${newY}px)`;
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchend', stopDrag);
+        }
+
+        collapseBtn.addEventListener('click', () => {
+            container.classList.toggle('collapsed');
+            collapseBtn.textContent = container.classList.contains('collapsed') ? '+' : '−';
+        });
+
+        // تحميل Google API عند تحميل الصفحة
+        window.addEventListener('load', loadGoogleAPI);
+
+        // تسجيل Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('Service Worker تم تسجيله بنجاح:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('فشل تسجيل Service Worker:', error);
+                    });
+            });
+        }
+
+        // إظهار زر التنزيل (Install PWA)
+        let deferredPrompt;
+        const installButton = document.createElement('button');
+        installButton.textContent = '⬇️ تنزيل التطبيق';
+        installButton.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 10001;
+            display: none;
+            cursor: pointer;
+        `;
+        document.body.appendChild(installButton);
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                installButton.style.display = 'none';
+            }
+        });
+
+        // إخفاء زر التنزيل بعد التثبيت
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('التطبيق تم تثبيته بنجاح');
+            installButton.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
