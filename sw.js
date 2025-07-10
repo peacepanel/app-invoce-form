@@ -4,7 +4,8 @@ const urlsToCache = [
   '/index.html',
   '/manifest.json',
   '/sw.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/gapi/0.0.3/gapi.min.js'
+  'https://apis.google.com/js/api.js',
+  'https://accounts.google.com/gsi/client'
 ];
 
 // تثبيت Service Worker
