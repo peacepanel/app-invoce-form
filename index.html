@@ -12,130 +12,11 @@
     <meta name="apple-mobile-web-app-title" content="الفواتير">
     <meta name="msapplication-TileColor" content="#667eea">
     
-    <!-- Icons (using embedded SVG) -->
+    <!-- Icons -->
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzY2N2VlYSIvPgo8c3ZnIHg9IjgiIHk9IjgiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=">
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUyIiBoZWlnaHQ9IjE1MiIgdmlld0JveD0iMCAwIDE1MiAxNTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTIiIGhlaWdodD0iMTUyIiByeD0iMzIiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0NCIgeT0iNDQiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=">
     
     <!-- Manifest -->
     <link rel="manifest" href="./manifest.json">
-    
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Backup API loading -->
-    <script>
-        // Fallback لتحميل Google API إذا فشل التحميل الأول
-        window.addEventListener('load', function() {
-            if (typeof google === 'undefined') {
-                const script = document.createElement('script');
-                script.src = 'https://accounts.google.com/gsi/client';
-                script.onload = function() {
-                    console.log('Google API loaded via fallback');
-                    if (typeof initializeGoogleAuth === 'function') {
-                        setTimeout(initializeGoogleAuth, 1000);
-                    }
-                };
-                script.onerror = function() {
-                    console.error('Failed to load Google API even with fallback');
-                    showMessage('فشل في تحميل Google API. استخدم تسجيل الدخول البديل.');
-                };
-                document.head.appendChild(script);
-            }
-        // زر اختبار الاتصال
-        document.getElementById('testBtn').addEventListener('click', async () => {
-            try {
-                showMessage('جاري اختبار Web App...');
-                
-                // اختبار 1: الاتصال الأساسي
-                const testResponse = await fetch(WEB_APP_URL);
-                console.log('Test 1 - Basic connection:', testResponse.status);
-                
-                if (testResponse.ok) {
-                    const result = await testResponse.json();
-                    console.log('Test 1 result:', result);
-                    showMessage('✅ الاتصال مع Web App ناجح!');
-                } else {
-                    throw new Error(`Web App response: ${testResponse.status}`);
-                }
-                
-                // اختبار 2: استدعاء getCategoryOptions (لا يحتاج مصادقة)
-                try {
-                    const categories = await callWebApp('getCategoryOptions');
-                    console.log('Test 2 - Categories loaded:', categories.length);
-                    showMessage('✅ تحميل البيانات ناجح! (' + categories.length + ' فئات)');
-                } catch (catError) {
-                    console.error('Test 2 failed:', catError);
-                    showMessage('❌ فشل تحميل البيانات: ' + catError.message);
-                }
-                
-                // اختبار 3: التحقق من المصادقة
-                try {
-                    const authResult = await callWebApp('checkUserAuth');
-                    console.log('Test 3 - Auth check:', authResult);
-                    
-                    if (authResult.authorized) {
-                        showMessage('✅ المصادقة ناجحة! المستخدم: ' + authResult.email);
-                    } else {
-                        showMessage('❌ المصادقة فاشلة. يجب تسجيل الدخول.');
-                    }
-                } catch (authError) {
-                    console.error('Test 3 failed:', authError);
-                    showMessage('❌ خطأ في التحقق من المصادقة: ' + authError.message);
-                }
-                
-            } catch (error) {
-                console.error('Test failed:', error);
-                showMessage('❌ فشل الاختبار: ' + error.message);
-            }
-        });
-
-        // زر اختبار الاتصال
-        document.getElementById('testBtn').addEventListener('click', async () => {
-            try {
-                showMessage('جاري اختبار Web App...');
-                
-                // اختبار 1: الاتصال الأساسي
-                const testResponse = await fetch(WEB_APP_URL);
-                console.log('Test 1 - Basic connection:', testResponse.status);
-                
-                if (testResponse.ok) {
-                    const result = await testResponse.json();
-                    console.log('Test 1 result:', result);
-                    showMessage('✅ الاتصال مع Web App ناجح!');
-                } else {
-                    throw new Error(`Web App response: ${testResponse.status}`);
-                }
-                
-                // اختبار 2: استدعاء getCategoryOptions (لا يحتاج مصادقة)
-                try {
-                    const categories = await callWebApp('getCategoryOptions');
-                    console.log('Test 2 - Categories loaded:', categories.length);
-                    showMessage('✅ تحميل البيانات ناجح! (' + categories.length + ' فئات)');
-                } catch (catError) {
-                    console.error('Test 2 failed:', catError);
-                    showMessage('❌ فشل تحميل البيانات: ' + catError.message);
-                }
-                
-                // اختبار 3: التحقق من المصادقة
-                try {
-                    const authResult = await callWebApp('checkUserAuth');
-                    console.log('Test 3 - Auth check:', authResult);
-                    
-                    if (authResult.authorized) {
-                        showMessage('✅ المصادقة ناجحة! المستخدم: ' + authResult.email);
-                    } else {
-                        showMessage('❌ المصادقة فاشلة. يجب تسجيل الدخول.');
-                    }
-                } catch (authError) {
-                    console.error('Test 3 failed:', authError);
-                    showMessage('❌ خطأ في التحقق من المصادقة: ' + authError.message);
-                }
-                
-            } catch (error) {
-                console.error('Test failed:', error);
-                showMessage('❌ فشل الاختبار: ' + error.message);
-            }
-        });
-    </script>
     
     <style>
         * {
@@ -201,10 +82,19 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
+            margin: 5px;
         }
 
         .login-btn:hover {
             background: #3367d6;
+        }
+
+        .login-btn.test {
+            background: #9C27B0;
+        }
+
+        .login-btn.fallback {
+            background: #4CAF50;
         }
 
         .form-container {
@@ -334,11 +224,6 @@
             text-align: center;
         }
 
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
         @media (max-width: 768px) {
             .floating-container {
                 height: 160px;
@@ -365,9 +250,8 @@
         
         <div class="auth-section" id="authSection">
             <h3>تسجيل الدخول</h3>
-            <div id="googleSignInButton"></div>
-            <button class="login-btn" id="fallbackLoginBtn" style="margin-top: 10px;">تسجيل الدخول البديل</button>
-            <button class="login-btn" id="testBtn" style="margin-top: 10px; background: #9C27B0;">اختبار الاتصال</button>
+            <button class="login-btn test" id="testBtn">اختبار الاتصال</button>
+            <button class="login-btn fallback" id="manualLoginBtn">دخول يدوي</button>
         </div>
 
         <div class="form-container" id="formContainer">
@@ -508,10 +392,9 @@
     </div>
 
     <script>
-        // إعدادات Google API
-        const CLIENT_ID = '628480859083-tkf99v2bnjnlblq8h8v7kl9ud8f14oi1.apps.googleusercontent.com';
+        // إعدادات التطبيق
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxeUR4JzbgiHYvUPSacLB6w5T-6Zd5jrOZJTkPWZ9wT3mdG4pN29cBIo1aCjcResQK9LA/exec';
-
+        
         let isAuthorized = false;
         let currentUser = null;
         let selectedCompany = null;
@@ -520,257 +403,32 @@
         let startY = 0;
         let currentY = 0;
 
-        // تهيئة Google Identity Services
-        function initializeGoogleAuth() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                // إنشاء زر تسجيل الدخول
-                google.accounts.id.initialize({
-                    client_id: CLIENT_ID,
-                    callback: handleCredentialResponse,
-                    auto_select: false,
-                    cancel_on_tap_outside: false
-                });
-
-                google.accounts.id.renderButton(
-                    document.getElementById("googleSignInButton"),
-                    { 
-                        theme: "outline", 
-                        size: "large",
-                        text: "signin_with",
-                        locale: "ar"
-                    }
-                );
-
-                // محاولة تسجيل دخول تلقائي
-                google.accounts.id.prompt();
-            } else {
-                console.warn('Google Identity Services not loaded');
-                showMessage('Google Identity Services لم يتم تحميله');
-            }
+        // دالة إظهار الرسائل
+        function showMessage(message) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.style.display = 'block';
+            console.log('Message:', message);
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 4000);
         }
 
-        // معالجة استجابة تسجيل الدخول
-        async function handleCredentialResponse(response) {
-            try {
-                showMessage('جاري تسجيل الدخول...');
-                
-                // حفظ JWT token للاستخدام في طلبات Web App
-                window.userCredential = response.credential;
-                
-                // فك تشفير JWT token للحصول على معلومات المستخدم
-                const payload = JSON.parse(atob(response.credential.split('.')[1]));
-                const userEmail = payload.email;
-                const userName = payload.name;
-                
-                console.log('User logged in:', userEmail);
-                
-                // التحقق من الصلاحيات عبر Web App مع إرسال JWT token
-                const authResult = await callWebApp('checkUserAuth', {}, response.credential);
-                
-                if (authResult.authorized) {
-                    currentUser = {
-                        email: userEmail,
-                        name: userName,
-                        credential: response.credential
-                    };
-                    
-                    document.getElementById('userInfo').textContent = userName;
-                    document.getElementById('authSection').style.display = 'none';
-                    document.getElementById('formContainer').style.display = 'block';
-                    
-                    isAuthorized = true;
-                    await loadInitialData();
-                    showMessage('تم تسجيل الدخول بنجاح!');
-                } else {
-                    showMessage('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
-                    signOut();
-                }
-            } catch (error) {
-                console.error('خطأ في تسجيل الدخول:', error);
-                showMessage('خطأ في تسجيل الدخول: ' + error.message);
-                signOut();
-            }
-        }
-
-        // تسجيل الخروج
-        function signOut() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.disableAutoSelect();
-            }
-            currentUser = null;
-            isAuthorized = false;
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('formContainer').style.display = 'none';
-            document.getElementById('userInfo').textContent = '';
-        }
-
-        // زر تسجيل الدخول البديل (في حالة فشل Google Identity)
-        document.getElementById('fallbackLoginBtn').addEventListener('click', async () => {
-            try {
-                showMessage('جاري اختبار الاتصال مع Google Apps Script...');
-                
-                // أولاً اختبر اتصال Web App
-                const testResponse = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: new FormData()
-                });
-                
-                if (!testResponse.ok) {
-                    throw new Error(`Web App غير متاح: ${testResponse.status}`);
-                }
-                
-                console.log('Web App connection successful');
-                
-                // طلب إدخال الإيميل يدوياً كخيار بديل
-                const userEmail = prompt('الرجاء إدخال بريدك الإلكتروني:');
-                
-                if (!userEmail || !userEmail.includes('@')) {
-                    throw new Error('الرجاء إدخال بريد إلكتروني صحيح');
-                }
-                
-                showMessage('جاري التحقق من الصلاحيات...');
-                
-                // محاولة التحقق من الصلاحيات باستخدام الإيميل المدخل
-                try {
-                    const authResult = await callWebApp('checkUserAuth', {}, null);
-                    
-                    if (authResult && authResult.authorized) {
-                        currentUser = {
-                            email: authResult.email,
-                            name: authResult.email.split('@')[0]
-                        };
-                        
-                        document.getElementById('userInfo').textContent = currentUser.name;
-                        document.getElementById('authSection').style.display = 'none';
-                        document.getElementById('formContainer').style.display = 'block';
-                        
-                        isAuthorized = true;
-                        await loadInitialData();
-                        showMessage('تم تسجيل الدخول بنجاح!');
-                    } else {
-                        // إذا فشل التحقق التلقائي، استخدم الإيميل المدخل
-                        currentUser = {
-                            email: userEmail,
-                            name: userEmail.split('@')[0]
-                        };
-                        
-                        // تحقق من الصلاحيات مع الإيميل المدخل
-                        const formData = new FormData();
-                        formData.append('action', 'checkUserAuth');
-                        formData.append('userEmail', userEmail);
-                        
-                        const response = await fetch(WEB_APP_URL, {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success && result.data.authorized) {
-                            document.getElementById('userInfo').textContent = currentUser.name;
-                            document.getElementById('authSection').style.display = 'none';
-                            document.getElementById('formContainer').style.display = 'block';
-                            
-                            isAuthorized = true;
-                            await loadInitialData();
-                            showMessage('تم تسجيل الدخول بنجاح!');
-                        } else {
-                            throw new Error('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
-                        }
-                    }
-                } catch (authError) {
-                    console.error('Auth check failed:', authError);
-                    
-                    // محاولة أخيرة: استخدم الإيميل المدخل مباشرة
-                    currentUser = {
-                        email: userEmail,
-                        name: userEmail.split('@')[0]
-                    };
-                    
-                    const formData = new FormData();
-                    formData.append('action', 'checkUserAuth');
-                    formData.append('userEmail', userEmail);
-                    
-                    const response = await fetch(WEB_APP_URL, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success && result.data.authorized) {
-                        document.getElementById('userInfo').textContent = currentUser.name;
-                        document.getElementById('authSection').style.display = 'none';
-                        document.getElementById('formContainer').style.display = 'block';
-                        
-                        isAuthorized = true;
-                        await loadInitialData();
-                        showMessage('تم تسجيل الدخول بنجاح!');
-                    } else {
-                        throw new Error('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
-                    }
-                }
-                
-            } catch (error) {
-                console.error('خطأ في تسجيل الدخول البديل:', error);
-                if (error.message.includes('CORS')) {
-                    showMessage('خطأ CORS: تم إصلاحه في Google Cloud Console');
-                } else if (error.message.includes('Failed to fetch')) {
-                    showMessage('فشل الاتصال مع Google Apps Script. تحقق من رابط Web App');
-                } else {
-                    showMessage('خطأ: ' + error.message);
-                }
-            }
-        });
-
-        // تحميل البيانات الأولية
-        async function loadInitialData() {
-            try {
-                showMessage('جاري تحميل البيانات...');
-                
-                const userToken = window.userCredential || (currentUser && currentUser.credential);
-                
-                const [categories, governorates] = await Promise.all([
-                    callWebApp('getCategoryOptions', {}, userToken),
-                    callWebApp('getGovernorates', {}, userToken)
-                ]);
-                
-                populateCategories(categories);
-                populateGovernorates(governorates);
-                populateGoodsTypeButtons();
-                
-                // تعيين التاريخ الحالي
-                document.getElementById('selectedDate').value = new Date().toISOString().split('T')[0];
-                
-                showMessage('تم تحميل البيانات بنجاح');
-            } catch (error) {
-                console.error('خطأ في تحميل البيانات:', error);
-                showMessage('خطأ في تحميل البيانات: ' + error.message);
-            }
-        }
-
-        // استدعاء Web App مع معالجة محسنة للأخطاء
-        async function callWebApp(action, data = {}, userToken = null) {
+        // دالة استدعاء Web App
+        async function callWebApp(action, data = {}) {
             try {
                 console.log('Calling Web App:', action, data);
                 
                 const formData = new FormData();
                 formData.append('action', action);
                 
-                // إضافة معلومات المستخدم بطرق متعددة
-                const token = userToken || window.userCredential || (currentUser && currentUser.credential);
-                if (token) {
-                    formData.append('userToken', token);
-                    console.log('Adding user token to request');
-                }
-                
-                // إضافة الإيميل مباشرة إذا كان متاحاً
+                // إضافة معلومات المستخدم
                 if (currentUser && currentUser.email) {
                     formData.append('userEmail', currentUser.email);
-                    console.log('Adding user email to request:', currentUser.email);
+                    console.log('Adding user email:', currentUser.email);
                 }
                 
-                // إضافة البيانات للطلب
+                // إضافة البيانات
                 if (data && Object.keys(data).length > 0) {
                     if (action === 'saveInvoice') {
                         formData.append('data', JSON.stringify(data));
@@ -783,39 +441,118 @@
 
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    body: formData,
-                    mode: 'cors'
+                    body: formData
                 });
 
                 console.log('Response status:', response.status);
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const result = await response.json();
                 console.log('Web App response:', result);
                 
                 if (!result.success) {
-                    // إظهار معلومات debug إذا كانت متاحة
-                    if (result.debug) {
-                        console.log('Debug info:', result.debug);
-                    }
-                    throw new Error(result.error || 'خطأ غير معروف من Web App');
+                    throw new Error(result.error || 'خطأ غير معروف');
                 }
                 
                 return result.data;
             } catch (error) {
                 console.error('خطأ في استدعاء Web App:', error);
+                throw error;
+            }
+        }
+
+        // دالة اختبار الاتصال
+        async function testConnection() {
+            try {
+                showMessage('جاري اختبار الاتصال...');
                 
-                // تفاصيل أكثر عن نوع الخطأ
-                if (error.message.includes('CORS')) {
-                    throw new Error('خطأ CORS: تحقق من إعدادات Google Cloud Console');
-                } else if (error.message.includes('Failed to fetch')) {
-                    throw new Error('فشل الاتصال: تحقق من إعدادات Google Apps Script');
+                // اختبار 1: الاتصال الأساسي
+                const testResponse = await fetch(WEB_APP_URL);
+                if (testResponse.ok) {
+                    const result = await testResponse.json();
+                    console.log('✅ Web App connection successful:', result);
+                    showMessage('✅ الاتصال مع Web App ناجح!');
                 } else {
-                    throw error;
+                    throw new Error(`Web App غير متاح: ${testResponse.status}`);
                 }
+                
+                // اختبار 2: تحميل البيانات
+                const categories = await callWebApp('getCategoryOptions');
+                console.log('✅ Categories loaded:', categories.length);
+                showMessage(`✅ تحميل البيانات ناجح! (${categories.length} فئات)`);
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+                showMessage('❌ فشل الاختبار: ' + error.message);
+                return false;
+            }
+        }
+
+        // دالة تسجيل الدخول اليدوي
+        async function manualLogin() {
+            try {
+                const userEmail = prompt('الرجاء إدخال بريدك الإلكتروني:');
+                
+                if (!userEmail || !userEmail.includes('@')) {
+                    throw new Error('الرجاء إدخال بريد إلكتروني صحيح');
+                }
+                
+                showMessage('جاري التحقق من الصلاحيات...');
+                
+                // تعيين المستخدم مؤقتاً
+                currentUser = {
+                    email: userEmail,
+                    name: userEmail.split('@')[0]
+                };
+                
+                // التحقق من الصلاحيات
+                const authResult = await callWebApp('checkUserAuth');
+                
+                if (authResult && authResult.authorized) {
+                    document.getElementById('userInfo').textContent = currentUser.name;
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('formContainer').style.display = 'block';
+                    
+                    isAuthorized = true;
+                    await loadInitialData();
+                    showMessage('✅ تم تسجيل الدخول بنجاح!');
+                } else {
+                    currentUser = null;
+                    throw new Error('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
+                }
+            } catch (error) {
+                console.error('خطأ في تسجيل الدخول:', error);
+                showMessage('❌ ' + error.message);
+                currentUser = null;
+                isAuthorized = false;
+            }
+        }
+
+        // دالة تحميل البيانات الأولية
+        async function loadInitialData() {
+            try {
+                showMessage('جاري تحميل البيانات...');
+                
+                const [categories, governorates] = await Promise.all([
+                    callWebApp('getCategoryOptions'),
+                    callWebApp('getGovernorates')
+                ]);
+                
+                populateCategories(categories);
+                populateGovernorates(governorates);
+                populateGoodsTypeButtons();
+                
+                // تعيين التاريخ الحالي
+                document.getElementById('selectedDate').value = new Date().toISOString().split('T')[0];
+                
+                showMessage('✅ تم تحميل البيانات بنجاح');
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                showMessage('❌ خطأ في تحميل البيانات: ' + error.message);
             }
         }
 
@@ -829,8 +566,7 @@
                 button.onclick = async () => {
                     try {
                         selectButton(button, 'category-buttons');
-                        const userToken = window.userCredential || (currentUser && currentUser.credential);
-                        const pages = await callWebApp('getPagesByCategory', { category: category.category }, userToken);
+                        const pages = await callWebApp('getPagesByCategory', { category: category.category });
                         populatePages(pages);
                     } catch (error) {
                         showMessage('خطأ في تحميل الصفحات: ' + error.message);
@@ -851,8 +587,7 @@
                         selectButton(button, 'page-buttons');
                         document.getElementById('page').value = page;
                         
-                        const userToken = window.userCredential || (currentUser && currentUser.credential);
-                        const phoneNumber = await callWebApp('getPhoneNumberByPage', { page: page }, userToken);
+                        const phoneNumber = await callWebApp('getPhoneNumberByPage', { page: page });
                         document.getElementById('phoneNumberPage').value = phoneNumber;
                     } catch (error) {
                         showMessage('خطأ في تحميل رقم الهاتف: ' + error.message);
@@ -939,39 +674,6 @@
             document.getElementById('totalAmount').value = orderAmount + deliveryAmount;
         }
 
-        // حفظ الفاتورة
-        document.getElementById('saveBtn').addEventListener('click', async () => {
-            if (!isAuthorized) {
-                showMessage('الرجاء تسجيل الدخول أولاً');
-                return;
-            }
-
-            const data = collectFormData();
-            if (!validateFormData(data)) return;
-
-            try {
-                const saveBtn = document.getElementById('saveBtn');
-                saveBtn.disabled = true;
-                saveBtn.textContent = 'جاري الحفظ...';
-                
-                showMessage('جاري حفظ الفاتورة...');
-                
-                // استخدام JWT token في حفظ الفاتورة
-                const userToken = window.userCredential || (currentUser && currentUser.credential);
-                const result = await callWebApp('saveInvoice', data, userToken);
-                
-                showMessage(result);
-                clearForm();
-            } catch (error) {
-                console.error('خطأ في حفظ الفاتورة:', error);
-                showMessage('خطأ في حفظ الفاتورة: ' + error.message);
-            } finally {
-                const saveBtn = document.getElementById('saveBtn');
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'احفظ الفاتورة';
-            }
-        });
-
         function collectFormData() {
             return {
                 issuingAuthority: document.getElementById('issuingAuthority').value,
@@ -1040,14 +742,39 @@
             document.getElementById('selectedDate').value = new Date().toISOString().split('T')[0];
         }
 
-        function showMessage(message) {
-            const statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = message;
-            statusMessage.style.display = 'block';
-            setTimeout(() => {
-                statusMessage.style.display = 'none';
-            }, 4000);
-        }
+        // معالجات الأحداث
+        document.getElementById('testBtn').addEventListener('click', testConnection);
+        document.getElementById('manualLoginBtn').addEventListener('click', manualLogin);
+
+        // حفظ الفاتورة
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            if (!isAuthorized) {
+                showMessage('الرجاء تسجيل الدخول أولاً');
+                return;
+            }
+
+            const data = collectFormData();
+            if (!validateFormData(data)) return;
+
+            try {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'جاري الحفظ...';
+                
+                showMessage('جاري حفظ الفاتورة...');
+                const result = await callWebApp('saveInvoice', data);
+                
+                showMessage('✅ ' + result);
+                clearForm();
+            } catch (error) {
+                console.error('خطأ في حفظ الفاتورة:', error);
+                showMessage('❌ خطأ في حفظ الفاتورة: ' + error.message);
+            } finally {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'احفظ الفاتورة';
+            }
+        });
 
         // وظائف السحب
         const container = document.getElementById('floatingContainer');
@@ -1089,30 +816,6 @@
         collapseBtn.addEventListener('click', () => {
             container.classList.toggle('collapsed');
             collapseBtn.textContent = container.classList.contains('collapsed') ? '+' : '−';
-        });
-
-        // تحميل Google Identity Services عند تحميل الصفحة
-        window.addEventListener('load', function() {
-            // انتظار تحميل Google Identity Services مع محاولات متعددة
-            let attempts = 0;
-            const maxAttempts = 20;
-            
-            const checkGoogle = setInterval(() => {
-                attempts++;
-                if (typeof google !== 'undefined' && google.accounts) {
-                    clearInterval(checkGoogle);
-                    initializeGoogleAuth();
-                    console.log('Google Identity Services loaded successfully');
-                } else if (attempts >= maxAttempts) {
-                    clearInterval(checkGoogle);
-                    console.warn('Google Identity Services failed to load after', maxAttempts, 'attempts');
-                    showMessage('Google Identity Services لم يتم تحميله. يمكنك استخدام تسجيل الدخول البديل.');
-                    // إظهار زر تسجيل الدخول البديل بشكل أكثر وضوحاً
-                    document.getElementById('fallbackLoginBtn').style.display = 'block';
-                    document.getElementById('fallbackLoginBtn').style.backgroundColor = '#4CAF50';
-                    document.getElementById('fallbackLoginBtn').textContent = 'تسجيل الدخول (البديل)';
-                }
-            }, 500); // فحص كل 500ms
         });
 
         // تسجيل Service Worker
@@ -1170,6 +873,9 @@
             console.log('التطبيق تم تثبيته بنجاح');
             installButton.style.display = 'none';
         });
+
+        // رسالة الترحيب
+        console.log('تطبيق إدخال الفواتير جاهز!');
     </script>
 </body>
 </html>
