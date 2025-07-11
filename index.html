@@ -21,6 +21,27 @@
     
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Backup API loading -->
+    <script>
+        // Fallback لتحميل Google API إذا فشل التحميل الأول
+        window.addEventListener('load', function() {
+            if (typeof google === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.onload = function() {
+                    console.log('Google API loaded via fallback');
+                    if (typeof initializeGoogleAuth === 'function') {
+                        setTimeout(initializeGoogleAuth, 1000);
+                    }
+                };
+                script.onerror = function() {
+                    console.error('Failed to load Google API even with fallback');
+                    showMessage('فشل في تحميل Google API. استخدم تسجيل الدخول البديل.');
+                };
+                document.head.appendChild(script);
+            }
+        });
+    </script>
     
     <style>
         * {
@@ -486,32 +507,49 @@
         // زر تسجيل الدخول البديل (في حالة فشل Google Identity)
         document.getElementById('fallbackLoginBtn').addEventListener('click', async () => {
             try {
-                showMessage('جاري اختبار الاتصال...');
-                const testResult = await callWebApp('getUserEmail');
+                showMessage('جاري اختبار الاتصال مع Google Apps Script...');
                 
-                if (testResult) {
-                    // المستخدم مسجل دخول في Google
-                    const authResult = await callWebApp('checkUserAuth');
+                // أولاً اختبر اتصال Web App
+                const testResponse = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: new FormData()
+                });
+                
+                if (!testResponse.ok) {
+                    throw new Error(`Web App غير متاح: ${testResponse.status}`);
+                }
+                
+                console.log('Web App connection successful');
+                showMessage('الاتصال ناجح. جاري التحقق من المصادقة...');
+                
+                // محاولة الحصول على بريد المستخدم
+                const authResult = await callWebApp('checkUserAuth');
+                
+                if (authResult && authResult.authorized) {
+                    currentUser = {
+                        email: authResult.email,
+                        name: authResult.email.split('@')[0]
+                    };
                     
-                    if (authResult.authorized) {
-                        currentUser = {
-                            email: authResult.email,
-                            name: authResult.email.split('@')[0]
-                        };
-                        
-                        document.getElementById('userInfo').textContent = currentUser.name;
-                        document.getElementById('authSection').style.display = 'none';
-                        document.getElementById('formContainer').style.display = 'block';
-                        
-                        isAuthorized = true;
-                        await loadInitialData();
-                        showMessage('تم تسجيل الدخول بنجاح!');
-                    } else {
-                        showMessage('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
-                    }
+                    document.getElementById('userInfo').textContent = currentUser.name;
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('formContainer').style.display = 'block';
+                    
+                    isAuthorized = true;
+                    await loadInitialData();
+                    showMessage('تم تسجيل الدخول بنجاح!');
+                } else {
+                    showMessage('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق، أو تحتاج لتسجيل الدخول إلى Google أولاً');
                 }
             } catch (error) {
-                showMessage('الرجاء تسجيل الدخول إلى Google أولاً');
+                console.error('خطأ في تسجيل الدخول البديل:', error);
+                if (error.message.includes('CORS')) {
+                    showMessage('خطأ CORS: يرجى إضافة peacepanel.github.io إلى Google Cloud Console');
+                } else if (error.message.includes('Failed to fetch')) {
+                    showMessage('فشل الاتصال مع Google Apps Script. تحقق من رابط Web App');
+                } else {
+                    showMessage('خطأ: ' + error.message);
+                }
             }
         });
 
@@ -542,6 +580,8 @@
         // استدعاء Web App مع معالجة محسنة للأخطاء
         async function callWebApp(action, data = {}) {
             try {
+                console.log('Calling Web App:', action, data);
+                
                 const formData = new FormData();
                 formData.append('action', action);
                 
@@ -562,20 +602,32 @@
                     mode: 'cors'
                 });
 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
                 }
 
                 const result = await response.json();
+                console.log('Web App response:', result);
                 
                 if (!result.success) {
-                    throw new Error(result.error || 'خطأ غير معروف');
+                    throw new Error(result.error || 'خطأ غير معروف من Web App');
                 }
                 
                 return result.data;
             } catch (error) {
                 console.error('خطأ في استدعاء Web App:', error);
-                throw error;
+                
+                // تفاصيل أكثر عن نوع الخطأ
+                if (error.message.includes('CORS')) {
+                    throw new Error('خطأ CORS: تحقق من إعدادات Google Cloud Console');
+                } else if (error.message.includes('Failed to fetch')) {
+                    throw new Error('فشل الاتصال: تحقق من إعدادات Google Apps Script');
+                } else {
+                    throw error;
+                }
             }
         }
 
@@ -848,21 +900,26 @@
 
         // تحميل Google Identity Services عند تحميل الصفحة
         window.addEventListener('load', function() {
-            // انتظار تحميل Google Identity Services
+            // انتظار تحميل Google Identity Services مع محاولات متعددة
+            let attempts = 0;
+            const maxAttempts = 20;
+            
             const checkGoogle = setInterval(() => {
+                attempts++;
                 if (typeof google !== 'undefined' && google.accounts) {
                     clearInterval(checkGoogle);
                     initializeGoogleAuth();
-                }
-            }, 100);
-            
-            // timeout بعد 10 ثوان
-            setTimeout(() => {
-                clearInterval(checkGoogle);
-                if (typeof google === 'undefined') {
+                    console.log('Google Identity Services loaded successfully');
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkGoogle);
+                    console.warn('Google Identity Services failed to load after', maxAttempts, 'attempts');
                     showMessage('Google Identity Services لم يتم تحميله. يمكنك استخدام تسجيل الدخول البديل.');
+                    // إظهار زر تسجيل الدخول البديل بشكل أكثر وضوحاً
+                    document.getElementById('fallbackLoginBtn').style.display = 'block';
+                    document.getElementById('fallbackLoginBtn').style.backgroundColor = '#4CAF50';
+                    document.getElementById('fallbackLoginBtn').textContent = 'تسجيل الدخول (البديل)';
                 }
-            }, 10000);
+            }, 500); // فحص كل 500ms
         });
 
         // تسجيل Service Worker
