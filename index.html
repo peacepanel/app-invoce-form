@@ -17,10 +17,11 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUyIiBoZWlnaHQ9IjE1MiIgdmlld0JveD0iMCAwIDE1MiAxNTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTIiIGhlaWdodD0iMTUyIiByeD0iMzIiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0NCIgeT0iNDQiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxwYXRoIGQ9Ik05IDExSDVhMiAyIDAgMCAwLTIgMnY4YTIgMiAwIDAgMCAyIDJoMTRhMiAyIDAgMCAwIDItMlY5YTIgMiAwIDAgMC0yLTJoLTVtLTQgMFY3YTIgMiAwIDAgMC0yLTJINWEyIDIgMCAwIDAtMiAydjIiLz4KPGxpbmUgeDE9IjkiIHkxPSIxNSIgeDI9IjE1IiB5Mj0iMTUiLz4KPGxpbmUgeDE9IjkiIHkxPSIxOSIgeDI9IjE1IiB5Mj0iMTkiLz4KPC9zdmc+Cjwvc3ZnPgo=">
     
     <!-- Manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="./manifest.json">
     
-    <script src="https://apis.google.com/js/api.js"></script>
+    <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <style>
         * {
             margin: 0;
@@ -40,7 +41,7 @@
             top: 0;
             left: 0;
             width: 100vw;
-            height: 150px; /* حوالي 4 سم */
+            height: 150px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 0 0 20px 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -172,6 +173,11 @@
             background: #1976D2;
         }
 
+        .save-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .collapse-btn {
             position: absolute;
             top: 10px;
@@ -209,6 +215,13 @@
             border-radius: 4px;
             font-size: 12px;
             display: none;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
         }
 
         @media (max-width: 768px) {
@@ -237,7 +250,8 @@
         
         <div class="auth-section" id="authSection">
             <h3>تسجيل الدخول</h3>
-            <button class="login-btn" id="loginBtn">تسجيل الدخول بـ Google</button>
+            <div id="googleSignInButton"></div>
+            <button class="login-btn" id="fallbackLoginBtn" style="margin-top: 10px;">تسجيل الدخول البديل</button>
         </div>
 
         <div class="form-container" id="formContainer">
@@ -380,108 +394,189 @@
     <script>
         // إعدادات Google API
         const CLIENT_ID = '628480859083-tkf99v2bnjnlblq8h8v7kl9ud8f14oi1.apps.googleusercontent.com';
-        const API_KEY = 'AIzaSyDHzv9g3ZdMpwUMO9v-f9xMzkpYqJZ3_Ik';
-        const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
-        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbybv-3d28nl6chkmcON7MLCTobOG7wNVeH4cYQvlNnZVsTI1JhZqhj9eDaNb-OGBftbwQ/exec';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbweiYlBSk1M8D1p8ZCz3GtdsUJkug-wpdyzlg4NLpKuzR-8dxAPHxfYFc1TMqIFwU06OA/exec';
 
         let isAuthorized = false;
+        let currentUser = null;
         let selectedCompany = null;
         let selectedSourceNumber = null;
         let isDragging = false;
         let startY = 0;
         let currentY = 0;
 
-        // تحميل Google API
-        function loadGoogleAPI() {
-            // التأكد من تحميل gapi
-            if (typeof gapi === 'undefined') {
-                console.error('Google API لم يتم تحميله');
-                showMessage('خطأ في تحميل Google API');
-                return;
-            }
-            
-            gapi.load('auth2', async () => {
-                try {
-                    await gapi.auth2.init({
-                        client_id: CLIENT_ID,
-                    });
-                    
-                    const authInstance = gapi.auth2.getAuthInstance();
-                    if (authInstance.isSignedIn.get()) {
-                        handleAuthResult(authInstance.currentUser.get());
+        // تهيئة Google Identity Services
+        function initializeGoogleAuth() {
+            if (typeof google !== 'undefined' && google.accounts) {
+                // إنشاء زر تسجيل الدخول
+                google.accounts.id.initialize({
+                    client_id: CLIENT_ID,
+                    callback: handleCredentialResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: false
+                });
+
+                google.accounts.id.renderButton(
+                    document.getElementById("googleSignInButton"),
+                    { 
+                        theme: "outline", 
+                        size: "large",
+                        text: "signin_with",
+                        locale: "ar"
                     }
-                } catch (error) {
-                    console.error('خطأ في تهيئة Google Auth:', error);
-                    showMessage('خطأ في تهيئة Google Auth');
-                }
-            });
+                );
+
+                // محاولة تسجيل دخول تلقائي
+                google.accounts.id.prompt();
+            } else {
+                console.warn('Google Identity Services not loaded');
+                showMessage('Google Identity Services لم يتم تحميله');
+            }
         }
 
-        // تسجيل الدخول
-        document.getElementById('loginBtn').addEventListener('click', async () => {
+        // معالجة استجابة تسجيل الدخول
+        async function handleCredentialResponse(response) {
             try {
-                const authInstance = gapi.auth2.getAuthInstance();
-                const user = await authInstance.signIn();
-                handleAuthResult(user);
+                showMessage('جاري تسجيل الدخول...');
+                
+                // فك تشفير JWT token للحصول على معلومات المستخدم
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                const userEmail = payload.email;
+                const userName = payload.name;
+                
+                // التحقق من الصلاحيات عبر Web App
+                const authResult = await callWebApp('checkUserAuth');
+                
+                if (authResult.authorized) {
+                    currentUser = {
+                        email: userEmail,
+                        name: userName,
+                        credential: response.credential
+                    };
+                    
+                    document.getElementById('userInfo').textContent = userName;
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('formContainer').style.display = 'block';
+                    
+                    isAuthorized = true;
+                    await loadInitialData();
+                    showMessage('تم تسجيل الدخول بنجاح!');
+                } else {
+                    showMessage('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
+                    signOut();
+                }
             } catch (error) {
-                showMessage('فشل تسجيل الدخول: ' + error.message);
+                console.error('خطأ في تسجيل الدخول:', error);
+                showMessage('خطأ في تسجيل الدخول: ' + error.message);
+                signOut();
+            }
+        }
+
+        // تسجيل الخروج
+        function signOut() {
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.disableAutoSelect();
+            }
+            currentUser = null;
+            isAuthorized = false;
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('userInfo').textContent = '';
+        }
+
+        // زر تسجيل الدخول البديل (في حالة فشل Google Identity)
+        document.getElementById('fallbackLoginBtn').addEventListener('click', async () => {
+            try {
+                showMessage('جاري اختبار الاتصال...');
+                const testResult = await callWebApp('getUserEmail');
+                
+                if (testResult) {
+                    // المستخدم مسجل دخول في Google
+                    const authResult = await callWebApp('checkUserAuth');
+                    
+                    if (authResult.authorized) {
+                        currentUser = {
+                            email: authResult.email,
+                            name: authResult.email.split('@')[0]
+                        };
+                        
+                        document.getElementById('userInfo').textContent = currentUser.name;
+                        document.getElementById('authSection').style.display = 'none';
+                        document.getElementById('formContainer').style.display = 'block';
+                        
+                        isAuthorized = true;
+                        await loadInitialData();
+                        showMessage('تم تسجيل الدخول بنجاح!');
+                    } else {
+                        showMessage('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
+                    }
+                }
+            } catch (error) {
+                showMessage('الرجاء تسجيل الدخول إلى Google أولاً');
             }
         });
-
-        function handleAuthResult(user) {
-            const profile = user.getBasicProfile();
-            const email = profile.getEmail();
-            
-            document.getElementById('userInfo').textContent = profile.getName();
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('formContainer').style.display = 'block';
-            
-            isAuthorized = true;
-            loadInitialData();
-        }
 
         // تحميل البيانات الأولية
         async function loadInitialData() {
             try {
-                const categories = await callWebApp('getCategoryOptions');
+                showMessage('جاري تحميل البيانات...');
+                
+                const [categories, governorates] = await Promise.all([
+                    callWebApp('getCategoryOptions'),
+                    callWebApp('getGovernorates')
+                ]);
+                
                 populateCategories(categories);
-                
-                const governorates = await callWebApp('getGovernorates');
                 populateGovernorates(governorates);
-                
                 populateGoodsTypeButtons();
+                
+                // تعيين التاريخ الحالي
+                document.getElementById('selectedDate').value = new Date().toISOString().split('T')[0];
+                
                 showMessage('تم تحميل البيانات بنجاح');
             } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
                 showMessage('خطأ في تحميل البيانات: ' + error.message);
             }
         }
 
-        // استدعاء Web App
+        // استدعاء Web App مع معالجة محسنة للأخطاء
         async function callWebApp(action, data = {}) {
-            const formData = new FormData();
-            formData.append('action', action);
-            
-            if (data && Object.keys(data).length > 0) {
-                if (action === 'saveInvoice') {
-                    formData.append('data', JSON.stringify(data));
-                } else {
-                    Object.keys(data).forEach(key => {
-                        formData.append(key, data[key]);
-                    });
+            try {
+                const formData = new FormData();
+                formData.append('action', action);
+                
+                // إضافة البيانات للطلب
+                if (data && Object.keys(data).length > 0) {
+                    if (action === 'saveInvoice') {
+                        formData.append('data', JSON.stringify(data));
+                    } else {
+                        Object.keys(data).forEach(key => {
+                            formData.append(key, data[key]);
+                        });
+                    }
                 }
-            }
 
-            const response = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: formData
-            });
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors'
+                });
 
-            const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.error);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'خطأ غير معروف');
+                }
+                
+                return result.data;
+            } catch (error) {
+                console.error('خطأ في استدعاء Web App:', error);
+                throw error;
             }
-            return result.data;
         }
 
         // وظائف UI
@@ -492,9 +587,13 @@
                 const button = document.createElement('button');
                 button.textContent = category.category;
                 button.onclick = async () => {
-                    selectButton(button, 'category-buttons');
-                    const pages = await callWebApp('getPagesByCategory', { category: category.category });
-                    populatePages(pages);
+                    try {
+                        selectButton(button, 'category-buttons');
+                        const pages = await callWebApp('getPagesByCategory', { category: category.category });
+                        populatePages(pages);
+                    } catch (error) {
+                        showMessage('خطأ في تحميل الصفحات: ' + error.message);
+                    }
                 };
                 categoryButtons.appendChild(button);
             });
@@ -507,11 +606,15 @@
                 const button = document.createElement('button');
                 button.textContent = page;
                 button.onclick = async () => {
-                    selectButton(button, 'page-buttons');
-                    document.getElementById('page').value = page;
-                    
-                    const phoneNumber = await callWebApp('getPhoneNumberByPage', { page: page });
-                    document.getElementById('phoneNumberPage').value = phoneNumber;
+                    try {
+                        selectButton(button, 'page-buttons');
+                        document.getElementById('page').value = page;
+                        
+                        const phoneNumber = await callWebApp('getPhoneNumberByPage', { page: page });
+                        document.getElementById('phoneNumberPage').value = phoneNumber;
+                    } catch (error) {
+                        showMessage('خطأ في تحميل رقم الهاتف: ' + error.message);
+                    }
                 };
                 pageButtons.appendChild(button);
             });
@@ -605,12 +708,22 @@
             if (!validateFormData(data)) return;
 
             try {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'جاري الحفظ...';
+                
                 showMessage('جاري حفظ الفاتورة...');
-                await callWebApp('saveInvoice', data);
-                showMessage('تم حفظ الفاتورة بنجاح!');
+                const result = await callWebApp('saveInvoice', data);
+                
+                showMessage(result);
                 clearForm();
             } catch (error) {
+                console.error('خطأ في حفظ الفاتورة:', error);
                 showMessage('خطأ في حفظ الفاتورة: ' + error.message);
+            } finally {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'احفظ الفاتورة';
             }
         });
 
@@ -621,31 +734,38 @@
                 selectedNumber: selectedSourceNumber,
                 selectedPage: document.getElementById('page').value,
                 phoneNumberPage: document.getElementById('phoneNumberPage').value,
-                goodsType: document.getElementById('goodsType').value,
+                selectedGoodsType: document.getElementById('goodsType').value,
                 customerName: document.getElementById('customerName').value,
                 governorate: document.getElementById('governorate').value,
                 address: document.getElementById('address').value,
                 phoneNumber1: document.getElementById('phoneNumber1').value,
                 phoneNumber2: document.getElementById('phoneNumber2').value,
-                quantity: document.getElementById('quantity').value,
-                orderAmount: document.getElementById('orderAmount').value,
-                deliveryAmount: document.getElementById('deliveryAmount').value,
-                totalAmount: document.getElementById('totalAmount').value,
+                quantity: parseInt(document.getElementById('quantity').value) || 0,
+                orderAmount: parseFloat(document.getElementById('orderAmount').value) || 0,
+                deliveryAmount: parseFloat(document.getElementById('deliveryAmount').value) || 0,
+                totalAmount: parseFloat(document.getElementById('totalAmount').value) || 0,
                 notes: document.getElementById('notes').value,
-                differenceAmount: document.getElementById('differenceAmount').value,
+                differenceAmount: parseFloat(document.getElementById('differenceAmount').value) || 0,
                 company: selectedCompany
             };
         }
 
         function validateFormData(data) {
             const required = [
-                'issuingAuthority', 'selectedPage', 'customerName', 'governorate', 
-                'address', 'phoneNumber1', 'goodsType', 'quantity', 'orderAmount'
+                { field: 'issuingAuthority', name: 'جهة الإصدار' },
+                { field: 'selectedPage', name: 'الصفحة' },
+                { field: 'customerName', name: 'اسم الزبون' },
+                { field: 'governorate', name: 'المحافظة' },
+                { field: 'address', name: 'العنوان' },
+                { field: 'phoneNumber1', name: 'موبايل 1' },
+                { field: 'selectedGoodsType', name: 'نوع البضاعة' },
+                { field: 'quantity', name: 'عدد القطع' },
+                { field: 'orderAmount', name: 'مبلغ الطلب' }
             ];
             
-            for (let field of required) {
-                if (!data[field]) {
-                    showMessage(`الرجاء ملء حقل ${field}`);
+            for (let item of required) {
+                if (!data[item.field]) {
+                    showMessage(`الرجاء ملء حقل ${item.name}`);
                     return false;
                 }
             }
@@ -670,6 +790,9 @@
             });
             selectedCompany = null;
             selectedSourceNumber = null;
+            
+            // إعادة تعيين التاريخ الحالي
+            document.getElementById('selectedDate').value = new Date().toISOString().split('T')[0];
         }
 
         function showMessage(message) {
@@ -678,7 +801,7 @@
             statusMessage.style.display = 'block';
             setTimeout(() => {
                 statusMessage.style.display = 'none';
-            }, 3000);
+            }, 4000);
         }
 
         // وظائف السحب
@@ -723,21 +846,21 @@
             collapseBtn.textContent = container.classList.contains('collapsed') ? '+' : '−';
         });
 
-        // تحميل Google API عند تحميل الصفحة
+        // تحميل Google Identity Services عند تحميل الصفحة
         window.addEventListener('load', function() {
-            // انتظار تحميل gapi
-            const checkGapi = setInterval(() => {
-                if (typeof gapi !== 'undefined') {
-                    clearInterval(checkGapi);
-                    loadGoogleAPI();
+            // انتظار تحميل Google Identity Services
+            const checkGoogle = setInterval(() => {
+                if (typeof google !== 'undefined' && google.accounts) {
+                    clearInterval(checkGoogle);
+                    initializeGoogleAuth();
                 }
             }, 100);
             
             // timeout بعد 10 ثوان
             setTimeout(() => {
-                clearInterval(checkGapi);
-                if (typeof gapi === 'undefined') {
-                    showMessage('فشل في تحميل Google API');
+                clearInterval(checkGoogle);
+                if (typeof google === 'undefined') {
+                    showMessage('Google Identity Services لم يتم تحميله. يمكنك استخدام تسجيل الدخول البديل.');
                 }
             }, 10000);
         });
@@ -745,7 +868,7 @@
         // تسجيل Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(function(registration) {
                         console.log('Service Worker تم تسجيله بنجاح:', registration.scope);
                     })
@@ -793,7 +916,6 @@
             }
         });
 
-        // إخفاء زر التنزيل بعد التثبيت
         window.addEventListener('appinstalled', (evt) => {
             console.log('التطبيق تم تثبيته بنجاح');
             installButton.style.display = 'none';
