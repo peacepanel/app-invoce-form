@@ -19,24 +19,33 @@
     <link rel="manifest" href="./manifest.json">
     
     <style>
+        /* إزالة كل الخلفيات وجعل كل شيء شفاف */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            background: transparent !important;
+            height: auto !important;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Arial', sans-serif;
             background: transparent !important;
+            height: auto !important;
             overflow: hidden;
             user-select: none;
-            margin: 0;
-            padding: 0;
-            /* جعل الجسم شفاف تماماً */
+            /* إزالة pointer-events من body تماماً */
             pointer-events: none;
+            /* جعل body بحجم المحتوى فقط */
+            width: 100vw;
+            position: relative;
         }
 
-        /* السماح بالتفاعل مع التطبيق العائم فقط */
+        /* التطبيق العائم الوحيد القابل للتفاعل */
         .floating-container {
             pointer-events: auto;
             position: fixed;
@@ -48,14 +57,431 @@
             border-radius: 0 0 20px 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             z-index: 10000;
-            touch-action: pan-y;
-            transition: transform 0.3s ease;
+            touch-action: none; /* منع التمرير الافتراضي */
+            transition: transform 0.3s ease, height 0.3s ease;
+            /* جعل التطبيق بالكامل قابل للسحب */
+            cursor: grab;
         }
 
-        /* زر التنزيل أيضاً يحتاج pointer-events */
-        .install-button {
-            pointer-events: auto;
+        .floating-container:active {
+            cursor: grabbing;
         }
+
+        .floating-container.expanded {
+            height: 400px;
+        }
+
+        .floating-container.collapsed {
+            transform: translateY(-120px) !important;
+        }
+
+        /* تحسين مقبض السحب */
+        .drag-handle {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 4px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            /* منع التفاعل مع المقبض لأن التطبيق كله قابل للسحب */
+            pointer-events: none;
+        }
+
+        .floating-container:hover .drag-handle {
+            background: rgba(255,255,255,1);
+            width: 50px;
+        }
+
+        .auth-section {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            /* منع السحب من الأزرار */
+            cursor: default;
+        }
+
+        .auth-section h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .login-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px;
+            /* منع السحب من الأزرار */
+            touch-action: manipulation;
+        }
+
+        .login-btn:hover {
+            background: #3367d6;
+        }
+
+        .login-btn.test {
+            background: #9C27B0;
+        }
+
+        .login-btn.fallback {
+            background: #4CAF50;
+        }
+
+        .form-container {
+            display: none;
+            height: calc(100% - 60px);
+            overflow-y: auto;
+            padding: 15px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            /* منع السحب من داخل النموذج */
+            cursor: default;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            touch-action: manipulation;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .button-group button {
+            flex: 1;
+            min-width: 30px;
+            padding: 8px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+            touch-action: manipulation;
+        }
+
+        .button-group button:hover {
+            background: #45a049;
+        }
+
+        .button-group button.selected {
+            background: #ffa500;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            touch-action: manipulation;
+        }
+
+        .save-btn:hover {
+            background: #1976D2;
+        }
+
+        .save-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .collapse-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 12px;
+            display: none;
+        }
+
+        .user-info.show {
+            display: block;
+        }
+
+        .status-message {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+            max-width: 90%;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        /* تأثيرات بصرية للسحب */
+        .floating-container.dragging {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            cursor: grabbing !important;
+        }
+
+        /* تحسين العرض في الأجهزة الصغيرة */
+        @media (max-width: 768px) {
+            .floating-container {
+                height: 140px;
+            }
+            
+            .floating-container.expanded {
+                height: 380px;
+            }
+            
+            .form-group input,
+            .form-group select {
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            .button-group button {
+                font-size: 12px;
+                padding: 10px;
+            }
+        }
+
+        /* تحسين للعرض الأفقي */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .floating-container.expanded {
+                height: 300px;
+            }
+        }
+
+        /* إخفاء scroll bars */
+        .form-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .form-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 2px;
+        }
+
+        .form-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+
+        .form-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-container" id="floatingContainer">
+        <button class="collapse-btn" id="collapseBtn">−</button>
+        <div class="drag-handle" id="dragHandle"></div>
+        <div class="user-info" id="userInfo">
+            <div id="userName"></div>
+            <div style="display: flex; gap: 5px; margin-top: 2px;">
+                <button onclick="showSessionInfo()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; cursor: pointer; touch-action: manipulation;">معلومات</button>
+                <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; cursor: pointer; touch-action: manipulation;">خروج</button>
+            </div>
+        </div>
+        
+        <div class="auth-section" id="authSection" style="display: none;">
+            <h3>تطبيق الفواتير العائم</h3>
+            <p style="font-size: 11px; margin-bottom: 10px; opacity: 0.9; line-height: 1.3;">
+                💡 يمكنك سحب التطبيق من أي مكان لأعلى/أسفل<br>
+                🔒 سيتم تذكر تسجيل دخولك لمدة شهر كامل
+            </p>
+            <button class="login-btn test" id="testBtn">اختبار الاتصال</button>
+            <button class="login-btn fallback" id="manualLoginBtn">دخول يدوي</button>
+        </div>
+
+        <div class="form-container" id="formContainer">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="issuingAuthority">جهة الاصدار</label>
+                    <select id="issuingAuthority">
+                        <option value="">اختر</option>
+                        <option value="AM">AM</option>
+                        <option value="A">A</option>
+                        <option value="BM">BM</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="selectedDate">تاريخ الطلب</label>
+                    <input type="date" id="selectedDate">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>رقم الوجبة</label>
+                <div class="button-group" id="sourceNumber-buttons">
+                    <button onclick="selectSourceNumber(this, 1)">1</button>
+                    <button onclick="selectSourceNumber(this, 2)">2</button>
+                    <button onclick="selectSourceNumber(this, 3)">3</button>
+                    <button onclick="selectSourceNumber(this, 4)">4</button>
+                    <button onclick="selectSourceNumber(this, 5)">5</button>
+                    <button onclick="selectSourceNumber(this, 6)">6</button>
+                    <button onclick="selectSourceNumber(this, 7)">7</button>
+                    <button onclick="selectSourceNumber(this, 8)">8</button>
+                    <button onclick="selectSourceNumber(this, 9)">9</button>
+                    <button onclick="selectSourceNumber(this, 10)">10</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>فئة البيج</label>
+                <div class="button-group" id="category-buttons"></div>
+            </div>
+
+            <div class="form-group">
+                <label>الصفحة</label>
+                <div class="button-group" id="page-buttons"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="page">اسم الصفحة</label>
+                    <input type="text" id="page" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumberPage">رقم البيج</label>
+                    <input type="text" id="phoneNumberPage" disabled>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="goodsType">نوع البضاعة</label>
+                <input type="text" id="goodsType">
+                <div class="button-group" id="goodsType-buttons"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="customerName">اسم الزبون</label>
+                <input type="text" id="customerName">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="governorate">المحافظة</label>
+                    <input list="governorates" id="governorate" oninput="updateDeliveryAmount()">
+                    <datalist id="governorates"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="address">العنوان</label>
+                    <input type="text" id="address">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phoneNumber1">موبايل 1</label>
+                    <input type="number" id="phoneNumber1">
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber2">موبايل 2</label>
+                    <input type="number" id="phoneNumber2">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity">عدد القطع</label>
+                    <input type="number" id="quantity">
+                </div>
+                <div class="form-group">
+                    <label for="orderAmount">مبلغ الطلب</label>
+                    <input type="number" id="orderAmount" onblur="validateOrderAmount()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="deliveryAmount">التوصيل</label>
+                    <input type="number" id="deliveryAmount">
+                </div>
+                <div class="form-group">
+                    <label for="totalAmount">المجموع</label>
+                    <input type="number" id="totalAmount">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="notes">ملاحظات</label>
+                    <input type="text" id="notes">
+                </div>
+                <div class="form-group">
+                    <label for="differenceAmount">مبلغ الفرق</label>
+                    <input type="number" id="differenceAmount">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>التوصيل بواسطة</label>
+                <div class="button-group" id="company-buttons">
+                    <button onclick="selectCompany(this, 'شركة القلعة')">القلعة</button>
+                    <button onclick="selectCompany(this, 'علي أبو إيان')">أبو إيان</button>
+                    <button onclick="selectCompany(this, 'مصطفى أبو نمر')">أبو نمر</button>
+                </div>
+            </div>
+
+            <button class="save-btn" id="saveBtn">احفظ الفاتورة</button>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+    </div>
 
         .drag-handle {
             position: absolute;
@@ -1071,19 +1497,42 @@
             }
         });
 
-        // وظائف السحب المحسنة
+        // وظائف السحب المحسنة - السحب من أي مكان في التطبيق
         const container = document.getElementById('floatingContainer');
-        const dragHandle = document.getElementById('dragHandle');
         const collapseBtn = document.getElementById('collapseBtn');
 
-        let currentTransform = 0; // تتبع الموضع الحالي
+        let currentTransform = 0;
+        let startTime = 0;
+        let startPos = 0;
+        let lastY = 0;
+        let velocity = 0;
 
-        dragHandle.addEventListener('mousedown', startDrag);
-        dragHandle.addEventListener('touchstart', startDrag, { passive: true });
+        // إضافة event listeners للسحب من كامل التطبيق
+        container.addEventListener('mousedown', startDrag);
+        container.addEventListener('touchstart', startDrag, { passive: false });
 
         function startDrag(e) {
+            // منع السحب إذا كان المستخدم يتفاعل مع عنصر form
+            const target = e.target;
+            const isFormElement = target.tagName === 'INPUT' || 
+                                target.tagName === 'SELECT' || 
+                                target.tagName === 'BUTTON' ||
+                                target.tagName === 'TEXTAREA' ||
+                                target.classList.contains('login-btn') ||
+                                target.onclick;
+
+            if (isFormElement && !target.classList.contains('drag-handle')) {
+                return; // السماح بالتفاعل العادي مع عناصر النموذج
+            }
+
+            e.preventDefault(); // منع السلوك الافتراضي فقط عند السحب
+            
             isDragging = true;
+            startTime = Date.now();
             startY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
+            startPos = startY;
+            lastY = startY;
+            velocity = 0;
             
             // إضافة تأثير بصري للسحب
             container.classList.add('dragging');
@@ -1097,29 +1546,47 @@
                 currentTransform = 0;
             }
             
-            document.addEventListener('mousemove', drag, { passive: true });
-            document.addEventListener('touchmove', drag, { passive: true });
+            document.addEventListener('mousemove', drag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
             document.addEventListener('mouseup', stopDrag);
             document.addEventListener('touchend', stopDrag);
             
             // منع التمرير في الصفحة أثناء السحب
             document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
         }
 
         function drag(e) {
             if (!isDragging) return;
             
             e.preventDefault();
+            const currentTime = Date.now();
             const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
             const deltaY = clientY - startY;
+            const timeDelta = currentTime - startTime;
+            
+            // حساب السرعة للحركة السلسة
+            if (timeDelta > 0) {
+                velocity = (clientY - lastY) / (currentTime - startTime) * 16; // 16ms frame
+            }
+            lastY = clientY;
+            startTime = currentTime;
             
             // حساب الموضع الجديد مع حدود آمنة
             const containerHeight = container.offsetHeight;
             const maxUp = -(containerHeight - 30); // اترك 30px ظاهرة
-            const maxDown = 0; // لا تنزل تحت الموضع الأصلي
+            const maxDown = Math.min(50, window.innerHeight - containerHeight); // السماح بالنزول قليلاً تحت الشاشة
             
             let newY = currentTransform + deltaY;
-            newY = Math.max(maxUp, Math.min(maxDown, newY));
+            
+            // تطبيق مقاومة عند الوصول للحدود
+            if (newY > maxDown) {
+                const excess = newY - maxDown;
+                newY = maxDown + excess * 0.3; // مقاومة 70%
+            } else if (newY < maxUp) {
+                const excess = maxUp - newY;
+                newY = maxUp - excess * 0.3; // مقاومة 70%
+            }
             
             container.style.transform = `translateY(${newY}px)`;
         }
@@ -1139,6 +1606,7 @@
             
             // استعادة التمرير
             document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
             
             // تحديث الموضع الحالي
             const transform = window.getComputedStyle(container).transform;
@@ -1147,25 +1615,48 @@
                 currentTransform = matrix.m42;
             }
             
-            // التقاط تلقائي للمواضع المحددة
+            // التقاط تلقائي للمواضع المحددة مع مراعاة السرعة
             snapToPosition();
         }
 
         function snapToPosition() {
             const containerHeight = container.offsetHeight;
             const maxUp = -(containerHeight - 30);
+            const maxDown = 0;
             
-            // إذا كان قريباً من الأعلى، اقفز للموضع المطوي
-            if (currentTransform < maxUp + 50) {
-                container.style.transform = `translateY(${maxUp}px)`;
-                currentTransform = maxUp;
+            // إذا كانت السرعة عالية، اتبع اتجاه السرعة
+            if (Math.abs(velocity) > 5) {
+                if (velocity > 0) {
+                    // سرعة لأسفل - اذهب للموضع المفتوح
+                    animateToPosition(maxDown, false);
+                    return;
+                } else {
+                    // سرعة لأعلى - اذهب للموضع المطوي
+                    animateToPosition(maxUp, true);
+                    return;
+                }
+            }
+            
+            // إذا لم تكن السرعة عالية، استخدم أقرب موضع
+            const midPoint = (maxUp + maxDown) / 2;
+            
+            if (currentTransform < midPoint) {
+                // أقرب للأعلى - اطو
+                animateToPosition(maxUp, true);
+            } else {
+                // أقرب للأسفل - افتح
+                animateToPosition(maxDown, false);
+            }
+        }
+
+        function animateToPosition(targetY, isCollapsed) {
+            container.style.transform = `translateY(${targetY}px)`;
+            currentTransform = targetY;
+            
+            if (isCollapsed) {
                 container.classList.add('collapsed');
                 collapseBtn.textContent = '+';
-            }
-            // إذا كان قريباً من الأسفل، اقفز للموضع المفتوح
-            else if (currentTransform > -50) {
-                container.style.transform = 'translateY(0px)';
-                currentTransform = 0;
+            } else {
                 container.classList.remove('collapsed');
                 collapseBtn.textContent = '−';
             }
@@ -1173,23 +1664,19 @@
 
         collapseBtn.addEventListener('click', toggleCollapse);
 
-        function toggleCollapse() {
+        function toggleCollapse(e) {
+            e.stopPropagation(); // منع تشغيل السحب عند النقر على زر الطي
+            
             const isCollapsed = container.classList.contains('collapsed');
             const containerHeight = container.offsetHeight;
             
             if (isCollapsed) {
                 // فتح التطبيق
-                container.style.transform = 'translateY(0px)';
-                currentTransform = 0;
-                container.classList.remove('collapsed');
-                collapseBtn.textContent = '−';
+                animateToPosition(0, false);
             } else {
                 // طي التطبيق
                 const maxUp = -(containerHeight - 30);
-                container.style.transform = `translateY(${maxUp}px)`;
-                currentTransform = maxUp;
-                container.classList.add('collapsed');
-                collapseBtn.textContent = '+';
+                animateToPosition(maxUp, true);
             }
         }
 
@@ -1200,7 +1687,27 @@
             } else {
                 container.classList.remove('expanded');
             }
+            
+            // إعادة حساب المواضع بعد تغيير الارتفاع
+            setTimeout(() => {
+                if (container.classList.contains('collapsed')) {
+                    const containerHeight = container.offsetHeight;
+                    const maxUp = -(containerHeight - 30);
+                    container.style.transform = `translateY(${maxUp}px)`;
+                    currentTransform = maxUp;
+                }
+            }, 300); // انتظار انتهاء animation الارتفاع
         }
+
+        // منع السحب أثناء التفاعل مع عناصر النموذج
+        document.querySelectorAll('input, select, button').forEach(element => {
+            element.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+            element.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            });
+        });
 
         // تسجيل Service Worker
         if ('serviceWorker' in navigator) {
@@ -1219,7 +1726,6 @@
         let deferredPrompt;
         const installButton = document.createElement('button');
         installButton.textContent = '⬇️ تنزيل التطبيق';
-        installButton.className = 'install-button'; // إضافة class للـ pointer-events
         installButton.style.cssText = `
             position: fixed;
             bottom: 20px;
@@ -1236,7 +1742,13 @@
             display: none;
             cursor: pointer;
             pointer-events: auto;
+            touch-action: manipulation;
         `;
+        
+        // منع السحب من زر التنزيل
+        installButton.addEventListener('mousedown', (e) => e.stopPropagation());
+        installButton.addEventListener('touchstart', (e) => e.stopPropagation());
+        
         document.body.appendChild(installButton);
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -1261,7 +1773,7 @@
         });
 
         // رسالة الترحيب وفحص الجلسة المحفوظة
-        console.log('تطبيق إدخال الفواتير العائم جاهز!');
+        console.log('🚀 تطبيق الفواتير العائم المحسن جاهز!');
         
         // فحص الجلسة المحفوظة عند تحميل الصفحة
         window.addEventListener('load', function() {
@@ -1276,11 +1788,31 @@
             }
             
             // إضافة معلومات للمطورين
-            console.log('🚀 التطبيق العائم:');
-            console.log('- اسحب المقبض لأعلى/أسفل للتحكم');
-            console.log('- المنطقة تحت التطبيق شفافة تماماً');
-            console.log('- يتم تذكر تسجيل الدخول لمدة شهر');
+            console.log('✨ المميزات:');
+            console.log('- اسحب من أي مكان في التطبيق لأعلى/أسفل');
+            console.log('- خلفية شفافة تماماً - لا تعيق التطبيقات الأخرى');
+            console.log('- حركة سلسة مع التقاط تلقائي ذكي');
+            console.log('- مقاومة عند الحدود للحركة الطبيعية');
+            console.log('- يتذكر تسجيل الدخول لمدة شهر');
+            
+            // منع السحب من عناصر النموذج المضافة ديناميكياً
+            setTimeout(() => {
+                document.querySelectorAll('input, select, button').forEach(element => {
+                    if (!element.hasAttribute('data-drag-protected')) {
+                        element.setAttribute('data-drag-protected', 'true');
+                        element.addEventListener('mousedown', (e) => {
+                            e.stopPropagation();
+                        });
+                        element.addEventListener('touchstart', (e) => {
+                            e.stopPropagation();
+                        });
+                    }
+                });
+            }, 1000);
         });
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
