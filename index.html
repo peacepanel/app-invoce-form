@@ -40,6 +40,100 @@
                 };
                 document.head.appendChild(script);
             }
+        // زر اختبار الاتصال
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            try {
+                showMessage('جاري اختبار Web App...');
+                
+                // اختبار 1: الاتصال الأساسي
+                const testResponse = await fetch(WEB_APP_URL);
+                console.log('Test 1 - Basic connection:', testResponse.status);
+                
+                if (testResponse.ok) {
+                    const result = await testResponse.json();
+                    console.log('Test 1 result:', result);
+                    showMessage('✅ الاتصال مع Web App ناجح!');
+                } else {
+                    throw new Error(`Web App response: ${testResponse.status}`);
+                }
+                
+                // اختبار 2: استدعاء getCategoryOptions (لا يحتاج مصادقة)
+                try {
+                    const categories = await callWebApp('getCategoryOptions');
+                    console.log('Test 2 - Categories loaded:', categories.length);
+                    showMessage('✅ تحميل البيانات ناجح! (' + categories.length + ' فئات)');
+                } catch (catError) {
+                    console.error('Test 2 failed:', catError);
+                    showMessage('❌ فشل تحميل البيانات: ' + catError.message);
+                }
+                
+                // اختبار 3: التحقق من المصادقة
+                try {
+                    const authResult = await callWebApp('checkUserAuth');
+                    console.log('Test 3 - Auth check:', authResult);
+                    
+                    if (authResult.authorized) {
+                        showMessage('✅ المصادقة ناجحة! المستخدم: ' + authResult.email);
+                    } else {
+                        showMessage('❌ المصادقة فاشلة. يجب تسجيل الدخول.');
+                    }
+                } catch (authError) {
+                    console.error('Test 3 failed:', authError);
+                    showMessage('❌ خطأ في التحقق من المصادقة: ' + authError.message);
+                }
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                showMessage('❌ فشل الاختبار: ' + error.message);
+            }
+        });
+
+        // زر اختبار الاتصال
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            try {
+                showMessage('جاري اختبار Web App...');
+                
+                // اختبار 1: الاتصال الأساسي
+                const testResponse = await fetch(WEB_APP_URL);
+                console.log('Test 1 - Basic connection:', testResponse.status);
+                
+                if (testResponse.ok) {
+                    const result = await testResponse.json();
+                    console.log('Test 1 result:', result);
+                    showMessage('✅ الاتصال مع Web App ناجح!');
+                } else {
+                    throw new Error(`Web App response: ${testResponse.status}`);
+                }
+                
+                // اختبار 2: استدعاء getCategoryOptions (لا يحتاج مصادقة)
+                try {
+                    const categories = await callWebApp('getCategoryOptions');
+                    console.log('Test 2 - Categories loaded:', categories.length);
+                    showMessage('✅ تحميل البيانات ناجح! (' + categories.length + ' فئات)');
+                } catch (catError) {
+                    console.error('Test 2 failed:', catError);
+                    showMessage('❌ فشل تحميل البيانات: ' + catError.message);
+                }
+                
+                // اختبار 3: التحقق من المصادقة
+                try {
+                    const authResult = await callWebApp('checkUserAuth');
+                    console.log('Test 3 - Auth check:', authResult);
+                    
+                    if (authResult.authorized) {
+                        showMessage('✅ المصادقة ناجحة! المستخدم: ' + authResult.email);
+                    } else {
+                        showMessage('❌ المصادقة فاشلة. يجب تسجيل الدخول.');
+                    }
+                } catch (authError) {
+                    console.error('Test 3 failed:', authError);
+                    showMessage('❌ خطأ في التحقق من المصادقة: ' + authError.message);
+                }
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                showMessage('❌ فشل الاختبار: ' + error.message);
+            }
         });
     </script>
     
@@ -273,6 +367,7 @@
             <h3>تسجيل الدخول</h3>
             <div id="googleSignInButton"></div>
             <button class="login-btn" id="fallbackLoginBtn" style="margin-top: 10px;">تسجيل الدخول البديل</button>
+            <button class="login-btn" id="testBtn" style="margin-top: 10px; background: #9C27B0;">اختبار الاتصال</button>
         </div>
 
         <div class="form-container" id="formContainer">
@@ -525,14 +620,19 @@
                 }
                 
                 console.log('Web App connection successful');
-                showMessage('الاتصال ناجح. هذا التطبيق يتطلب تسجيل دخول Google...');
                 
-                // في تسجيل الدخول البديل، نحتاج للمستخدم أن يسجل دخول Google يدوياً
-                showMessage('الرجاء تسجيل الدخول إلى Google في هذا المتصفح، ثم المحاولة مرة أخرى');
+                // طلب إدخال الإيميل يدوياً كخيار بديل
+                const userEmail = prompt('الرجاء إدخال بريدك الإلكتروني:');
                 
-                // محاولة التحقق من الصلاحيات بدون token (يعتمد على جلسة Google)
+                if (!userEmail || !userEmail.includes('@')) {
+                    throw new Error('الرجاء إدخال بريد إلكتروني صحيح');
+                }
+                
+                showMessage('جاري التحقق من الصلاحيات...');
+                
+                // محاولة التحقق من الصلاحيات باستخدام الإيميل المدخل
                 try {
-                    const authResult = await callWebApp('checkUserAuth');
+                    const authResult = await callWebApp('checkUserAuth', {}, null);
                     
                     if (authResult && authResult.authorized) {
                         currentUser = {
@@ -548,11 +648,67 @@
                         await loadInitialData();
                         showMessage('تم تسجيل الدخول بنجاح!');
                     } else {
-                        showMessage('عذراً، ليس لديك صلاحية للوصول، أو تحتاج لتسجيل الدخول إلى Google أولاً');
+                        // إذا فشل التحقق التلقائي، استخدم الإيميل المدخل
+                        currentUser = {
+                            email: userEmail,
+                            name: userEmail.split('@')[0]
+                        };
+                        
+                        // تحقق من الصلاحيات مع الإيميل المدخل
+                        const formData = new FormData();
+                        formData.append('action', 'checkUserAuth');
+                        formData.append('userEmail', userEmail);
+                        
+                        const response = await fetch(WEB_APP_URL, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success && result.data.authorized) {
+                            document.getElementById('userInfo').textContent = currentUser.name;
+                            document.getElementById('authSection').style.display = 'none';
+                            document.getElementById('formContainer').style.display = 'block';
+                            
+                            isAuthorized = true;
+                            await loadInitialData();
+                            showMessage('تم تسجيل الدخول بنجاح!');
+                        } else {
+                            throw new Error('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
+                        }
                     }
                 } catch (authError) {
                     console.error('Auth check failed:', authError);
-                    showMessage('فشل التحقق من الصلاحيات. الرجاء تسجيل الدخول إلى Google أولاً');
+                    
+                    // محاولة أخيرة: استخدم الإيميل المدخل مباشرة
+                    currentUser = {
+                        email: userEmail,
+                        name: userEmail.split('@')[0]
+                    };
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'checkUserAuth');
+                    formData.append('userEmail', userEmail);
+                    
+                    const response = await fetch(WEB_APP_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.data.authorized) {
+                        document.getElementById('userInfo').textContent = currentUser.name;
+                        document.getElementById('authSection').style.display = 'none';
+                        document.getElementById('formContainer').style.display = 'block';
+                        
+                        isAuthorized = true;
+                        await loadInitialData();
+                        showMessage('تم تسجيل الدخول بنجاح!');
+                    } else {
+                        throw new Error('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
+                    }
                 }
                 
             } catch (error) {
@@ -601,11 +757,17 @@
                 const formData = new FormData();
                 formData.append('action', action);
                 
-                // إضافة JWT token للمصادقة
+                // إضافة معلومات المستخدم بطرق متعددة
                 const token = userToken || window.userCredential || (currentUser && currentUser.credential);
                 if (token) {
                     formData.append('userToken', token);
                     console.log('Adding user token to request');
+                }
+                
+                // إضافة الإيميل مباشرة إذا كان متاحاً
+                if (currentUser && currentUser.email) {
+                    formData.append('userEmail', currentUser.email);
+                    console.log('Adding user email to request:', currentUser.email);
                 }
                 
                 // إضافة البيانات للطلب
@@ -635,6 +797,10 @@
                 console.log('Web App response:', result);
                 
                 if (!result.success) {
+                    // إظهار معلومات debug إذا كانت متاحة
+                    if (result.debug) {
+                        console.log('Debug info:', result.debug);
+                    }
                     throw new Error(result.error || 'خطأ غير معروف من Web App');
                 }
                 
