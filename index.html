@@ -459,13 +459,18 @@
             try {
                 showMessage('جاري تسجيل الدخول...');
                 
+                // حفظ JWT token للاستخدام في طلبات Web App
+                window.userCredential = response.credential;
+                
                 // فك تشفير JWT token للحصول على معلومات المستخدم
                 const payload = JSON.parse(atob(response.credential.split('.')[1]));
                 const userEmail = payload.email;
                 const userName = payload.name;
                 
-                // التحقق من الصلاحيات عبر Web App
-                const authResult = await callWebApp('checkUserAuth');
+                console.log('User logged in:', userEmail);
+                
+                // التحقق من الصلاحيات عبر Web App مع إرسال JWT token
+                const authResult = await callWebApp('checkUserAuth', {}, response.credential);
                 
                 if (authResult.authorized) {
                     currentUser = {
@@ -520,31 +525,40 @@
                 }
                 
                 console.log('Web App connection successful');
-                showMessage('الاتصال ناجح. جاري التحقق من المصادقة...');
+                showMessage('الاتصال ناجح. هذا التطبيق يتطلب تسجيل دخول Google...');
                 
-                // محاولة الحصول على بريد المستخدم
-                const authResult = await callWebApp('checkUserAuth');
+                // في تسجيل الدخول البديل، نحتاج للمستخدم أن يسجل دخول Google يدوياً
+                showMessage('الرجاء تسجيل الدخول إلى Google في هذا المتصفح، ثم المحاولة مرة أخرى');
                 
-                if (authResult && authResult.authorized) {
-                    currentUser = {
-                        email: authResult.email,
-                        name: authResult.email.split('@')[0]
-                    };
+                // محاولة التحقق من الصلاحيات بدون token (يعتمد على جلسة Google)
+                try {
+                    const authResult = await callWebApp('checkUserAuth');
                     
-                    document.getElementById('userInfo').textContent = currentUser.name;
-                    document.getElementById('authSection').style.display = 'none';
-                    document.getElementById('formContainer').style.display = 'block';
-                    
-                    isAuthorized = true;
-                    await loadInitialData();
-                    showMessage('تم تسجيل الدخول بنجاح!');
-                } else {
-                    showMessage('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق، أو تحتاج لتسجيل الدخول إلى Google أولاً');
+                    if (authResult && authResult.authorized) {
+                        currentUser = {
+                            email: authResult.email,
+                            name: authResult.email.split('@')[0]
+                        };
+                        
+                        document.getElementById('userInfo').textContent = currentUser.name;
+                        document.getElementById('authSection').style.display = 'none';
+                        document.getElementById('formContainer').style.display = 'block';
+                        
+                        isAuthorized = true;
+                        await loadInitialData();
+                        showMessage('تم تسجيل الدخول بنجاح!');
+                    } else {
+                        showMessage('عذراً، ليس لديك صلاحية للوصول، أو تحتاج لتسجيل الدخول إلى Google أولاً');
+                    }
+                } catch (authError) {
+                    console.error('Auth check failed:', authError);
+                    showMessage('فشل التحقق من الصلاحيات. الرجاء تسجيل الدخول إلى Google أولاً');
                 }
+                
             } catch (error) {
                 console.error('خطأ في تسجيل الدخول البديل:', error);
                 if (error.message.includes('CORS')) {
-                    showMessage('خطأ CORS: يرجى إضافة peacepanel.github.io إلى Google Cloud Console');
+                    showMessage('خطأ CORS: تم إصلاحه في Google Cloud Console');
                 } else if (error.message.includes('Failed to fetch')) {
                     showMessage('فشل الاتصال مع Google Apps Script. تحقق من رابط Web App');
                 } else {
@@ -558,9 +572,11 @@
             try {
                 showMessage('جاري تحميل البيانات...');
                 
+                const userToken = window.userCredential || (currentUser && currentUser.credential);
+                
                 const [categories, governorates] = await Promise.all([
-                    callWebApp('getCategoryOptions'),
-                    callWebApp('getGovernorates')
+                    callWebApp('getCategoryOptions', {}, userToken),
+                    callWebApp('getGovernorates', {}, userToken)
                 ]);
                 
                 populateCategories(categories);
@@ -578,12 +594,19 @@
         }
 
         // استدعاء Web App مع معالجة محسنة للأخطاء
-        async function callWebApp(action, data = {}) {
+        async function callWebApp(action, data = {}, userToken = null) {
             try {
                 console.log('Calling Web App:', action, data);
                 
                 const formData = new FormData();
                 formData.append('action', action);
+                
+                // إضافة JWT token للمصادقة
+                const token = userToken || window.userCredential || (currentUser && currentUser.credential);
+                if (token) {
+                    formData.append('userToken', token);
+                    console.log('Adding user token to request');
+                }
                 
                 // إضافة البيانات للطلب
                 if (data && Object.keys(data).length > 0) {
@@ -603,7 +626,6 @@
                 });
 
                 console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
@@ -641,7 +663,8 @@
                 button.onclick = async () => {
                     try {
                         selectButton(button, 'category-buttons');
-                        const pages = await callWebApp('getPagesByCategory', { category: category.category });
+                        const userToken = window.userCredential || (currentUser && currentUser.credential);
+                        const pages = await callWebApp('getPagesByCategory', { category: category.category }, userToken);
                         populatePages(pages);
                     } catch (error) {
                         showMessage('خطأ في تحميل الصفحات: ' + error.message);
@@ -662,7 +685,8 @@
                         selectButton(button, 'page-buttons');
                         document.getElementById('page').value = page;
                         
-                        const phoneNumber = await callWebApp('getPhoneNumberByPage', { page: page });
+                        const userToken = window.userCredential || (currentUser && currentUser.credential);
+                        const phoneNumber = await callWebApp('getPhoneNumberByPage', { page: page }, userToken);
                         document.getElementById('phoneNumberPage').value = phoneNumber;
                     } catch (error) {
                         showMessage('خطأ في تحميل رقم الهاتف: ' + error.message);
@@ -765,7 +789,10 @@
                 saveBtn.textContent = 'جاري الحفظ...';
                 
                 showMessage('جاري حفظ الفاتورة...');
-                const result = await callWebApp('saveInvoice', data);
+                
+                // استخدام JWT token في حفظ الفاتورة
+                const userToken = window.userCredential || (currentUser && currentUser.credential);
+                const result = await callWebApp('saveInvoice', data, userToken);
                 
                 showMessage(result);
                 clearForm();
