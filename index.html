@@ -30,6 +30,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             overflow-x: hidden;
+            font-size: 18px; /* خط أكبر أساسي */
         }
 
         .main-container {
@@ -42,7 +43,7 @@
         .header {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
-            padding: 15px 20px;
+            padding: 20px 15px; /* تقليل الهوامش الجانبية */
             color: white;
             display: flex;
             justify-content: space-between;
@@ -51,16 +52,16 @@
         }
 
         .header h1 {
-            font-size: 24px;
+            font-size: 32px; /* خط أكبر للعنوان */
             font-weight: bold;
         }
 
         .user-info {
             display: none;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             color: white;
-            font-size: 14px;
+            font-size: 18px; /* خط أكبر */
         }
 
         .user-info.show {
@@ -69,27 +70,29 @@
 
         .user-controls {
             display: flex;
-            gap: 8px;
+            gap: 12px;
         }
 
         .user-controls button {
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 10px 20px; /* أزرار أكبر */
+            border-radius: 25px;
+            font-size: 16px; /* خط أكبر */
             cursor: pointer;
             transition: all 0.2s ease;
+            font-weight: bold;
         }
 
         .user-controls button:hover {
             background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
         }
 
         .content {
             flex: 1;
-            padding: 20px;
+            padding: 15px 10px; /* تقليل الهوامش الجانبية */
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -97,63 +100,88 @@
 
         .auth-section {
             background: white;
-            border-radius: 20px;
-            padding: 40px 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 25px;
+            padding: 50px 40px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
             text-align: center;
-            max-width: 400px;
+            max-width: 500px;
             width: 100%;
-            margin-top: 50px;
+            margin: 20px 10px; /* تقليل الهوامش الجانبية */
             display: none;
         }
 
         .auth-section h3 {
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 32px; /* خط أكبر */
+            margin-bottom: 25px;
             color: #333;
         }
 
         .auth-section p {
             color: #666;
-            margin-bottom: 30px;
-            line-height: 1.5;
+            margin-bottom: 35px;
+            line-height: 1.6;
+            font-size: 18px; /* خط أكبر */
         }
 
         .login-btn {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px 25px;
-            border-radius: 25px;
+            padding: 20px 35px; /* أزرار أكبر */
+            border-radius: 30px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 20px; /* خط أكبر */
             font-weight: bold;
-            margin: 10px;
-            min-width: 140px;
+            margin: 15px;
+            min-width: 180px;
             transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
         .login-btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
         .login-btn.test {
-            background: #9C27B0;
+            background: linear-gradient(135deg, #9C27B0 0%, #E91E63 100%);
         }
 
         .login-btn.test:hover {
-            background: #7B1FA2;
-            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4);
+            box-shadow: 0 8px 25px rgba(156, 39, 176, 0.4);
+        }
+
+        /* زر التنصيب الدائم */
+        .install-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .install-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
         }
 
         .form-container {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-width: 800px;
+            border-radius: 25px;
+            padding: 30px 20px; /* تقليل الهوامش الجانبية */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            max-width: 95%; /* استغلال المساحة أكثر */
             width: 100%;
             display: none;
         }
@@ -164,16 +192,17 @@
 
         .form-title {
             text-align: center;
-            font-size: 28px;
+            font-size: 36px; /* خط أكبر للعنوان */
             color: #333;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            font-weight: bold;
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 25px; /* مساحة أكبر بين الأعمدة */
+            margin-bottom: 25px;
         }
 
         .form-group {
@@ -186,18 +215,18 @@
         }
 
         .form-group label {
-            font-size: 14px;
+            font-size: 20px; /* خط أكبر للتسميات */
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             color: #333;
         }
 
         .form-group input,
         .form-group select {
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 16px;
+            padding: 18px 20px; /* حقول أكبر */
+            border: 3px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 20px; /* خط أكبر في الحقول */
             transition: all 0.2s ease;
         }
 
@@ -205,56 +234,149 @@
         .form-group select:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* إزالة أسهم التحكم في الأرقام */
+        .form-group input[type="text"] {
+            -moz-appearance: textfield;
+        }
+        
+        .form-group input[type="text"]::-webkit-outer-spin-button,
+        .form-group input[type="text"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         .button-group {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* أزرار أكبر */
+            gap: 15px; /* مساحة أكبر بين الأزرار */
+            margin-bottom: 25px;
         }
 
         .button-group button {
-            padding: 12px 16px;
-            background: #f8f9fa;
+            padding: 18px 20px; /* أزرار أكبر */
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             color: #333;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 14px;
+            border: 3px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 18px; /* خط أكبر */
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .button-group button:hover {
-            background: #e9ecef;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
             border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
         }
 
         .button-group button.selected {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* ألوان مميزة للمجموعات المختلفة */
+        #sourceNumber-buttons button {
+            background: linear-gradient(135deg, #FFE082 0%, #FFC107 100%);
+            color: #333;
+            border-color: #FFC107;
+        }
+
+        #sourceNumber-buttons button:hover {
+            background: linear-gradient(135deg, #FFD54F 0%, #FF9800 100%);
+        }
+
+        #sourceNumber-buttons button.selected {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: white;
+        }
+
+        #category-buttons button {
+            background: linear-gradient(135deg, #C8E6C9 0%, #4CAF50 100%);
+            color: #333;
+            border-color: #4CAF50;
+        }
+
+        #category-buttons button:hover {
+            background: linear-gradient(135deg, #A5D6A7 0%, #388E3C 100%);
+        }
+
+        #category-buttons button.selected {
+            background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
+            color: white;
+        }
+
+        #page-buttons button {
+            background: linear-gradient(135deg, #BBDEFB 0%, #2196F3 100%);
+            color: #333;
+            border-color: #2196F3;
+        }
+
+        #page-buttons button:hover {
+            background: linear-gradient(135deg, #90CAF9 0%, #1976D2 100%);
+        }
+
+        #page-buttons button.selected {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: white;
+        }
+
+        #goodsType-buttons button {
+            background: linear-gradient(135deg, #F8BBD9 0%, #E91E63 100%);
+            color: #333;
+            border-color: #E91E63;
+        }
+
+        #goodsType-buttons button:hover {
+            background: linear-gradient(135deg, #F48FB1 0%, #C2185B 100%);
+        }
+
+        #goodsType-buttons button.selected {
+            background: linear-gradient(135deg, #C2185B 0%, #AD1457 100%);
+            color: white;
+        }
+
+        #company-buttons button {
+            background: linear-gradient(135deg, #D1C4E9 0%, #673AB7 100%);
+            color: #333;
+            border-color: #673AB7;
+        }
+
+        #company-buttons button:hover {
+            background: linear-gradient(135deg, #B39DDB 0%, #512DA8 100%);
+        }
+
+        #company-buttons button.selected {
+            background: linear-gradient(135deg, #512DA8 0%, #4527A0 100%);
+            color: white;
         }
 
         .save-btn {
             width: 100%;
-            padding: 18px;
+            padding: 25px; /* زر أكبر */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 15px;
-            font-size: 18px;
+            border-radius: 20px;
+            font-size: 24px; /* خط أكبر */
             font-weight: bold;
             cursor: pointer;
-            margin-top: 30px;
+            margin-top: 40px;
             transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
         .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
         .save-btn:disabled {
@@ -271,27 +393,28 @@
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.9);
             color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-size: 16px;
+            padding: 20px 30px; /* رسائل أكبر */
+            border-radius: 15px;
+            font-size: 20px; /* خط أكبر */
             display: none;
             z-index: 10001;
             max-width: 90%;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .install-button {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
             color: white;
             border: none;
-            padding: 15px 20px;
-            border-radius: 25px;
-            font-size: 16px;
+            padding: 20px 25px; /* زر أكبر */
+            border-radius: 30px;
+            font-size: 18px; /* خط أكبر */
             font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
             z-index: 10001;
             display: none;
             cursor: pointer;
@@ -299,8 +422,8 @@
         }
 
         .install-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
         }
 
         /* تحسينات للموبايل */
