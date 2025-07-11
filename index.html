@@ -27,12 +27,18 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: transparent;
+            background: transparent !important;
             overflow: hidden;
             user-select: none;
+            margin: 0;
+            padding: 0;
+            /* جعل الجسم شفاف تماماً */
+            pointer-events: none;
         }
 
+        /* السماح بالتفاعل مع التطبيق العائم فقط */
         .floating-container {
+            pointer-events: auto;
             position: fixed;
             top: 0;
             left: 0;
@@ -44,6 +50,11 @@
             z-index: 10000;
             touch-action: pan-y;
             transition: transform 0.3s ease;
+        }
+
+        /* زر التنزيل أيضاً يحتاج pointer-events */
+        .install-button {
+            pointer-events: auto;
         }
 
         .drag-handle {
@@ -197,8 +208,76 @@
             cursor: pointer;
         }
 
-        .collapsed {
-            transform: translateY(-120px);
+        .floating-container.expanded {
+            height: 400px; /* ارتفاع أكبر عند فتح النموذج */
+        }
+
+        .floating-container.collapsed {
+            transform: translateY(-120px) !important;
+        }
+
+        /* تحسين مقبض السحب */
+        .drag-handle {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 5px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 3px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            /* إضافة تأثير يجعله أكثر وضوحاً */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .drag-handle:hover {
+            background: rgba(255,255,255,1);
+            width: 60px;
+            height: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+            background: rgba(255,255,255,1);
+        }
+
+        /* إضافة مؤشر بصري للسحب */
+        .drag-handle::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 1px;
+        }
+
+        .drag-handle::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 1px;
+        }
+
+        /* تحسين النموذج ليكون أطول */
+        .form-container {
+            display: none;
+            height: calc(100% - 60px); /* اترك مساحة للمقبض */
+            overflow-y: auto;
+            padding: 15px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            max-height: 350px; /* حد أقصى للارتفاع */
         }
 
         .user-info {
@@ -229,9 +308,25 @@
             text-align: center;
         }
 
+        /* تأثيرات بصرية إضافية */
+        .floating-container.dragging {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            transform-origin: center;
+        }
+
+        .floating-container.dragging .drag-handle {
+            background: rgba(255,255,255,1);
+            width: 70px;
+        }
+
+        /* تحسين العرض في الأجهزة الصغيرة */
         @media (max-width: 768px) {
             .floating-container {
-                height: 160px;
+                height: 140px;
+            }
+            
+            .floating-container.expanded {
+                height: 380px;
             }
             
             .form-group input,
@@ -243,6 +338,17 @@
             .button-group button {
                 font-size: 12px;
                 padding: 10px;
+            }
+        }
+
+        /* تحسين للعرض الأفقي */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .floating-container.expanded {
+                height: 300px;
+            }
+            
+            .form-container {
+                max-height: 250px;
             }
         }
     </style>
@@ -260,9 +366,10 @@
         </div>
         
         <div class="auth-section" id="authSection" style="display: none;">
-            <h3>تسجيل الدخول</h3>
-            <p style="font-size: 12px; margin-bottom: 15px; opacity: 0.9;">
-                سيتم تذكر تسجيل دخولك لمدة شهر كامل
+            <h3>تطبيق الفواتير العائم</h3>
+            <p style="font-size: 11px; margin-bottom: 10px; opacity: 0.9; line-height: 1.3;">
+                💡 يمكنك سحب التطبيق لأعلى/أسفل من المقبض<br>
+                🔒 سيتم تذكر تسجيل دخولك لمدة شهر كامل
             </p>
             <button class="login-btn test" id="testBtn">اختبار الاتصال</button>
             <button class="login-btn fallback" id="manualLoginBtn">دخول يدوي</button>
@@ -513,6 +620,7 @@
                     document.getElementById('formContainer').style.display = 'block';
                     
                     isAuthorized = true;
+                    updateContainerHeight(); // تحديث ارتفاع التطبيق
                     await loadInitialData();
                     showMessage('✅ تم تسجيل الدخول التلقائي بنجاح!');
                 } else {
@@ -521,6 +629,7 @@
                     currentUser = null;
                     isAuthorized = false;
                     document.getElementById('userInfo').classList.remove('show');
+                    updateContainerHeight(); // تحديث ارتفاع التطبيق
                     showMessage('❌ انتهت صلاحية الوصول. الرجاء تسجيل الدخول مرة أخرى');
                     document.getElementById('authSection').style.display = 'block';
                     document.getElementById('formContainer').style.display = 'none';
@@ -531,6 +640,7 @@
                 currentUser = null;
                 isAuthorized = false;
                 document.getElementById('userInfo').classList.remove('show');
+                updateContainerHeight(); // تحديث ارتفاع التطبيق
                 showMessage('❌ فشل تسجيل الدخول التلقائي');
                 document.getElementById('authSection').style.display = 'block';
                 document.getElementById('formContainer').style.display = 'none';
@@ -656,11 +766,13 @@
                     document.getElementById('formContainer').style.display = 'block';
                     
                     isAuthorized = true;
+                    updateContainerHeight(); // تحديث ارتفاع التطبيق
                     await loadInitialData();
                     showMessage('✅ تم تسجيل الدخول بنجاح! (سيتم تذكرك لمدة شهر)');
                 } else {
                     currentUser = null;
                     document.getElementById('userInfo').classList.remove('show');
+                    updateContainerHeight(); // تحديث ارتفاع التطبيق
                     throw new Error('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
                 }
             } catch (error) {
@@ -669,6 +781,7 @@
                 currentUser = null;
                 isAuthorized = false;
                 document.getElementById('userInfo').classList.remove('show');
+                updateContainerHeight(); // تحديث ارتفاع التطبيق
             }
         }
 
@@ -706,6 +819,7 @@
                 document.getElementById('authSection').style.display = 'block';
                 document.getElementById('formContainer').style.display = 'none';
                 
+                updateContainerHeight(); // تحديث ارتفاع التطبيق
                 showMessage('تم تسجيل الخروج بنجاح');
             }
         }
@@ -957,47 +1071,136 @@
             }
         });
 
-        // وظائف السحب
+        // وظائف السحب المحسنة
         const container = document.getElementById('floatingContainer');
         const dragHandle = document.getElementById('dragHandle');
         const collapseBtn = document.getElementById('collapseBtn');
 
+        let currentTransform = 0; // تتبع الموضع الحالي
+
         dragHandle.addEventListener('mousedown', startDrag);
-        dragHandle.addEventListener('touchstart', startDrag);
+        dragHandle.addEventListener('touchstart', startDrag, { passive: true });
 
         function startDrag(e) {
             isDragging = true;
             startY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
-            currentY = container.offsetTop;
             
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('touchmove', drag);
+            // إضافة تأثير بصري للسحب
+            container.classList.add('dragging');
+            
+            // الحصول على الموضع الحالي
+            const transform = window.getComputedStyle(container).transform;
+            if (transform !== 'none') {
+                const matrix = new DOMMatrix(transform);
+                currentTransform = matrix.m42;
+            } else {
+                currentTransform = 0;
+            }
+            
+            document.addEventListener('mousemove', drag, { passive: true });
+            document.addEventListener('touchmove', drag, { passive: true });
             document.addEventListener('mouseup', stopDrag);
             document.addEventListener('touchend', stopDrag);
+            
+            // منع التمرير في الصفحة أثناء السحب
+            document.body.style.overflow = 'hidden';
         }
 
         function drag(e) {
             if (!isDragging) return;
             
+            e.preventDefault();
             const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
             const deltaY = clientY - startY;
-            const newY = Math.max(-120, Math.min(0, currentY + deltaY));
+            
+            // حساب الموضع الجديد مع حدود آمنة
+            const containerHeight = container.offsetHeight;
+            const maxUp = -(containerHeight - 30); // اترك 30px ظاهرة
+            const maxDown = 0; // لا تنزل تحت الموضع الأصلي
+            
+            let newY = currentTransform + deltaY;
+            newY = Math.max(maxUp, Math.min(maxDown, newY));
             
             container.style.transform = `translateY(${newY}px)`;
         }
 
         function stopDrag() {
+            if (!isDragging) return;
+            
             isDragging = false;
+            
+            // إزالة تأثير السحب
+            container.classList.remove('dragging');
+            
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('touchmove', drag);
             document.removeEventListener('mouseup', stopDrag);
             document.removeEventListener('touchend', stopDrag);
+            
+            // استعادة التمرير
+            document.body.style.overflow = '';
+            
+            // تحديث الموضع الحالي
+            const transform = window.getComputedStyle(container).transform;
+            if (transform !== 'none') {
+                const matrix = new DOMMatrix(transform);
+                currentTransform = matrix.m42;
+            }
+            
+            // التقاط تلقائي للمواضع المحددة
+            snapToPosition();
         }
 
-        collapseBtn.addEventListener('click', () => {
-            container.classList.toggle('collapsed');
-            collapseBtn.textContent = container.classList.contains('collapsed') ? '+' : '−';
-        });
+        function snapToPosition() {
+            const containerHeight = container.offsetHeight;
+            const maxUp = -(containerHeight - 30);
+            
+            // إذا كان قريباً من الأعلى، اقفز للموضع المطوي
+            if (currentTransform < maxUp + 50) {
+                container.style.transform = `translateY(${maxUp}px)`;
+                currentTransform = maxUp;
+                container.classList.add('collapsed');
+                collapseBtn.textContent = '+';
+            }
+            // إذا كان قريباً من الأسفل، اقفز للموضع المفتوح
+            else if (currentTransform > -50) {
+                container.style.transform = 'translateY(0px)';
+                currentTransform = 0;
+                container.classList.remove('collapsed');
+                collapseBtn.textContent = '−';
+            }
+        }
+
+        collapseBtn.addEventListener('click', toggleCollapse);
+
+        function toggleCollapse() {
+            const isCollapsed = container.classList.contains('collapsed');
+            const containerHeight = container.offsetHeight;
+            
+            if (isCollapsed) {
+                // فتح التطبيق
+                container.style.transform = 'translateY(0px)';
+                currentTransform = 0;
+                container.classList.remove('collapsed');
+                collapseBtn.textContent = '−';
+            } else {
+                // طي التطبيق
+                const maxUp = -(containerHeight - 30);
+                container.style.transform = `translateY(${maxUp}px)`;
+                currentTransform = maxUp;
+                container.classList.add('collapsed');
+                collapseBtn.textContent = '+';
+            }
+        }
+
+        // تحديث ارتفاع التطبيق عند تسجيل الدخول
+        function updateContainerHeight() {
+            if (isAuthorized) {
+                container.classList.add('expanded');
+            } else {
+                container.classList.remove('expanded');
+            }
+        }
 
         // تسجيل Service Worker
         if ('serviceWorker' in navigator) {
@@ -1016,6 +1219,7 @@
         let deferredPrompt;
         const installButton = document.createElement('button');
         installButton.textContent = '⬇️ تنزيل التطبيق';
+        installButton.className = 'install-button'; // إضافة class للـ pointer-events
         installButton.style.cssText = `
             position: fixed;
             bottom: 20px;
@@ -1031,6 +1235,7 @@
             z-index: 10001;
             display: none;
             cursor: pointer;
+            pointer-events: auto;
         `;
         document.body.appendChild(installButton);
 
@@ -1056,7 +1261,7 @@
         });
 
         // رسالة الترحيب وفحص الجلسة المحفوظة
-        console.log('تطبيق إدخال الفواتير جاهز!');
+        console.log('تطبيق إدخال الفواتير العائم جاهز!');
         
         // فحص الجلسة المحفوظة عند تحميل الصفحة
         window.addEventListener('load', function() {
@@ -1067,7 +1272,14 @@
                 console.log('لا توجد جلسة محفوظة، يتطلب تسجيل دخول جديد');
                 document.getElementById('authSection').style.display = 'block';
                 document.getElementById('formContainer').style.display = 'none';
+                updateContainerHeight(); // تحديث الارتفاع
             }
+            
+            // إضافة معلومات للمطورين
+            console.log('🚀 التطبيق العائم:');
+            console.log('- اسحب المقبض لأعلى/أسفل للتحكم');
+            console.log('- المنطقة تحت التطبيق شفافة تماماً');
+            console.log('- يتم تذكر تسجيل الدخول لمدة شهر');
         });
     </script>
 </body>
