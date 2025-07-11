@@ -207,6 +207,11 @@
             left: 10px;
             color: white;
             font-size: 12px;
+            display: none; /* مخفي في البداية */
+        }
+
+        .user-info.show {
+            display: block; /* يظهر عند تسجيل الدخول */
         }
 
         .status-message {
@@ -246,10 +251,19 @@
     <div class="floating-container" id="floatingContainer">
         <button class="collapse-btn" id="collapseBtn">−</button>
         <div class="drag-handle" id="dragHandle"></div>
-        <div class="user-info" id="userInfo"></div>
+        <div class="user-info" id="userInfo">
+            <div id="userName"></div>
+            <div style="display: flex; gap: 5px; margin-top: 2px;">
+                <button onclick="showSessionInfo()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; cursor: pointer;">معلومات</button>
+                <button onclick="logout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 9px; cursor: pointer;">خروج</button>
+            </div>
+        </div>
         
-        <div class="auth-section" id="authSection">
+        <div class="auth-section" id="authSection" style="display: none;">
             <h3>تسجيل الدخول</h3>
+            <p style="font-size: 12px; margin-bottom: 15px; opacity: 0.9;">
+                سيتم تذكر تسجيل دخولك لمدة شهر كامل
+            </p>
             <button class="login-btn test" id="testBtn">اختبار الاتصال</button>
             <button class="login-btn fallback" id="manualLoginBtn">دخول يدوي</button>
         </div>
@@ -393,7 +407,7 @@
 
     <script>
         // إعدادات التطبيق
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzDelUhUG8awWfJ1RzbKY1iVFf2QHnMthEv7guJmNWu3fGV4owAwtjjkXNfrSv4p0JKMQ/exec';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxeUR4JzbgiHYvUPSacLB6w5T-6Zd5jrOZJTkPWZ9wT3mdG4pN29cBIo1aCjcResQK9LA/exec';
         
         let isAuthorized = false;
         let currentUser = null;
@@ -402,6 +416,126 @@
         let isDragging = false;
         let startY = 0;
         let currentY = 0;
+
+        // إعدادات التذكر (30 يوم = 30 * 24 * 60 * 60 * 1000 مللي ثانية)
+        const REMEMBER_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 يوم
+        const STORAGE_KEY = 'invoiceAppUser';
+
+        // دالة تمديد صلاحية الجلسة (في حالة الاستخدام النشط)
+        function extendSession() {
+            const savedUser = getUserFromStorage();
+            if (savedUser && currentUser) {
+                // تمديد الجلسة لشهر إضافي من الآن
+                saveUserToStorage(currentUser);
+                console.log('Session extended for another month');
+            }
+        }
+
+        // دالة حفظ بيانات المستخدم محلياً
+        function saveUserToStorage(user) {
+            const userData = {
+                email: user.email,
+                name: user.name,
+                loginDate: new Date().getTime(),
+                expiryDate: new Date().getTime() + REMEMBER_DURATION
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            console.log('User data saved to localStorage:', userData);
+        }
+
+        // دالة استرجاع بيانات المستخدم المحفوظة
+        function getUserFromStorage() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (!stored) return null;
+                
+                const userData = JSON.parse(stored);
+                const now = new Date().getTime();
+                
+                // فحص انتهاء الصلاحية
+                if (now > userData.expiryDate) {
+                    console.log('User session expired, removing from storage');
+                    localStorage.removeItem(STORAGE_KEY);
+                    return null;
+                }
+                
+                console.log('Valid user found in storage:', userData);
+                return userData;
+            } catch (error) {
+                console.error('Error reading user from storage:', error);
+                localStorage.removeItem(STORAGE_KEY);
+                return null;
+            }
+        }
+
+        // دالة حذف بيانات المستخدم (تسجيل الخروج)
+        function clearUserFromStorage() {
+            localStorage.removeItem(STORAGE_KEY);
+            console.log('User data cleared from storage');
+        }
+
+        // دالة فحص الجلسة المحفوظة عند تحميل الصفحة
+        function checkSavedSession() {
+            const savedUser = getUserFromStorage();
+            
+            if (savedUser) {
+                // تسجيل دخول تلقائي بالبيانات المحفوظة
+                currentUser = {
+                    email: savedUser.email,
+                    name: savedUser.name
+                };
+                
+                // حساب الأيام المتبقية
+                const daysLeft = Math.ceil((savedUser.expiryDate - new Date().getTime()) / (24 * 60 * 60 * 1000));
+                
+                showMessage(`أهلاً ${savedUser.name}! (${daysLeft} يوم متبقي)`);
+                
+                // تسجيل دخول تلقائي
+                performAutoLogin();
+                return true;
+            }
+            
+            return false;
+        }
+
+        // دالة تسجيل الدخول التلقائي
+        async function performAutoLogin() {
+            try {
+                showMessage('جاري تسجيل الدخول التلقائي...');
+                
+                // التحقق من الصلاحيات
+                const authResult = await callWebApp('checkUserAuth');
+                
+                if (authResult && authResult.authorized) {
+                    document.getElementById('userName').textContent = currentUser.name;
+                    document.getElementById('userInfo').classList.add('show');
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('formContainer').style.display = 'block';
+                    
+                    isAuthorized = true;
+                    await loadInitialData();
+                    showMessage('✅ تم تسجيل الدخول التلقائي بنجاح!');
+                } else {
+                    // إذا انتهت الصلاحيات، امسح البيانات المحفوظة
+                    clearUserFromStorage();
+                    currentUser = null;
+                    isAuthorized = false;
+                    document.getElementById('userInfo').classList.remove('show');
+                    showMessage('❌ انتهت صلاحية الوصول. الرجاء تسجيل الدخول مرة أخرى');
+                    document.getElementById('authSection').style.display = 'block';
+                    document.getElementById('formContainer').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('خطأ في تسجيل الدخول التلقائي:', error);
+                clearUserFromStorage();
+                currentUser = null;
+                isAuthorized = false;
+                document.getElementById('userInfo').classList.remove('show');
+                showMessage('❌ فشل تسجيل الدخول التلقائي');
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('formContainer').style.display = 'none';
+            }
+        }
 
         // دالة إظهار الرسائل
         function showMessage(message) {
@@ -513,15 +647,20 @@
                 const authResult = await callWebApp('checkUserAuth');
                 
                 if (authResult && authResult.authorized) {
-                    document.getElementById('userInfo').textContent = currentUser.name;
+                    // حفظ بيانات المستخدم لمدة شهر
+                    saveUserToStorage(currentUser);
+                    
+                    document.getElementById('userName').textContent = currentUser.name;
+                    document.getElementById('userInfo').classList.add('show');
                     document.getElementById('authSection').style.display = 'none';
                     document.getElementById('formContainer').style.display = 'block';
                     
                     isAuthorized = true;
                     await loadInitialData();
-                    showMessage('✅ تم تسجيل الدخول بنجاح!');
+                    showMessage('✅ تم تسجيل الدخول بنجاح! (سيتم تذكرك لمدة شهر)');
                 } else {
                     currentUser = null;
+                    document.getElementById('userInfo').classList.remove('show');
                     throw new Error('عذراً، ليس لديك صلاحية للوصول لهذا التطبيق');
                 }
             } catch (error) {
@@ -529,6 +668,45 @@
                 showMessage('❌ ' + error.message);
                 currentUser = null;
                 isAuthorized = false;
+                document.getElementById('userInfo').classList.remove('show');
+            }
+        }
+
+        // دالة عرض معلومات الجلسة
+        function showSessionInfo() {
+            const savedUser = getUserFromStorage();
+            if (savedUser) {
+                const now = new Date();
+                const expiryDate = new Date(savedUser.expiryDate);
+                const loginDate = new Date(savedUser.loginDate);
+                const daysLeft = Math.ceil((savedUser.expiryDate - now.getTime()) / (24 * 60 * 60 * 1000));
+                
+                const info = `معلومات الجلسة:\n\n` +
+                           `المستخدم: ${savedUser.name}\n` +
+                           `البريد: ${savedUser.email}\n` +
+                           `تاريخ تسجيل الدخول: ${loginDate.toLocaleDateString('ar')}\n` +
+                           `تاريخ انتهاء الجلسة: ${expiryDate.toLocaleDateString('ar')}\n` +
+                           `الأيام المتبقية: ${daysLeft} يوم`;
+                
+                alert(info);
+            } else {
+                alert('لا توجد معلومات جلسة محفوظة');
+            }
+        }
+
+        // دالة تسجيل الخروج
+        function logout() {
+            if (confirm('هل تريد تسجيل الخروج؟ (ستحتاج لإدخال بريدك الإلكتروني مرة أخرى)')) {
+                clearUserFromStorage();
+                currentUser = null;
+                isAuthorized = false;
+                
+                document.getElementById('userName').textContent = '';
+                document.getElementById('userInfo').classList.remove('show');
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('formContainer').style.display = 'none';
+                
+                showMessage('تم تسجيل الخروج بنجاح');
             }
         }
 
@@ -764,6 +942,9 @@
                 showMessage('جاري حفظ الفاتورة...');
                 const result = await callWebApp('saveInvoice', data);
                 
+                // تمديد الجلسة عند الاستخدام النشط
+                extendSession();
+                
                 showMessage('✅ ' + result);
                 clearForm();
             } catch (error) {
@@ -874,8 +1055,20 @@
             installButton.style.display = 'none';
         });
 
-        // رسالة الترحيب
+        // رسالة الترحيب وفحص الجلسة المحفوظة
         console.log('تطبيق إدخال الفواتير جاهز!');
+        
+        // فحص الجلسة المحفوظة عند تحميل الصفحة
+        window.addEventListener('load', function() {
+            console.log('فحص الجلسة المحفوظة...');
+            
+            if (!checkSavedSession()) {
+                // إذا لم توجد جلسة محفوظة، اعرض شاشة تسجيل الدخول
+                console.log('لا توجد جلسة محفوظة، يتطلب تسجيل دخول جديد');
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('formContainer').style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
